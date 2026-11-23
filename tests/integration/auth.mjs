@@ -127,8 +127,33 @@ try {
   });
   assert.equal(google.status, 200, "emulated Google sign-in");
   const { idToken, localId } = await google.json();
-  assert.equal((await exchange(idToken)).destination, "/workspace");
+  const campus = await exchange(idToken);
+  assert.equal(campus.destination, "/workspace");
   assert.equal((await db.doc("users/" + localId).get()).get("role"), "student");
+  const resource = origin + "/resources/mixed-signal-oscilloscope";
+  async function headerFor(cookie) {
+    const response = await fetch(resource, {
+      headers: cookie ? { cookie } : {},
+    });
+    assert.equal(response.status, 200);
+    const header = (await response.text()).match(
+      /<header\b[^>]*>[\s\S]*?<\/header>/,
+    )?.[0];
+    assert.ok(header, "resource page header");
+    return header;
+  }
+  const signedIn = await headerFor(campus.cookie);
+  assert.match(signedIn, /Campus student/);
+  assert.match(signedIn, /Sign out/);
+  assert.doesNotMatch(signedIn, /Log in \/ Sign up/);
+  const guest = await headerFor();
+  assert.match(guest, /Log in \/ Sign up/);
+  assert.doesNotMatch(guest, /Campus student|Sign out/);
+  assert.equal(
+    (await post(origin + "/api/auth/logout", {}, { cookie: campus.cookie }))
+      .status,
+    303,
+  );
   console.log(
     "All demo roles, Google test account, profiles, reviewer access, sign-out and origin checks passed.",
   );

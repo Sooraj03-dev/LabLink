@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { DecodedIdToken } from "firebase-admin/auth";
@@ -33,11 +34,8 @@ export function identity(claims: DecodedIdToken) {
     role,
     demo,
     displayName:
-      typeof claims.name === "string"
-        ? claims.name
-        : demo
-          ? "Demo " + role
-          : "Campus member",
+      (typeof claims.name === "string" && claims.name.trim()) ||
+      (demo ? "Demo " + role : claims.email || "Campus member"),
   };
 }
 
@@ -68,7 +66,7 @@ export async function createProfile(
   });
 }
 
-export async function currentUser() {
+export const currentUser = cache(async function currentUser() {
   const value = (await cookies()).get(cookieName)?.value;
   if (!value || !clientConfig()) return null;
   try {
@@ -76,7 +74,7 @@ export async function currentUser() {
   } catch {
     return null;
   }
-}
+});
 
 export async function requireUser() {
   const user = await currentUser();

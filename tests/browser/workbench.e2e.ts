@@ -6,6 +6,9 @@ test("three direct logins keep sample activity in the same browser", async ({
   context,
 }) => {
   await page.goto("/login");
+  const header = page.getByRole("banner");
+  const account = header.getByRole("group", { name: "Signed-in account" });
+  const signOut = account.getByRole("button", { name: "Sign out" });
   for (const role of ["Student", "Faculty", "Admin"]) {
     await expect(
       page.getByRole("button", { name: role, exact: true }),
@@ -13,6 +16,10 @@ test("three direct logins keep sample activity in the same browser", async ({
   }
   await page.getByRole("button", { name: "Student", exact: true }).click();
   await expect(page).toHaveURL(/\/workspace$/);
+  await expect(account).toContainText("Demo student");
+  await expect(
+    header.getByRole("link", { name: "Log in / Sign up" }),
+  ).toHaveCount(0);
   await page.goto("/approvals");
   await expect(page).toHaveURL(/\/workspace$/);
   await page.goto("/resources/mixed-signal-oscilloscope");
@@ -34,18 +41,23 @@ test("three direct logins keep sample activity in the same browser", async ({
   await form.getByLabel("Project title").fill("Sensor calibration run");
   await form.getByRole("button", { name: "Save request" }).click();
   await expect(page.getByRole("status")).toContainText("Request sent");
-  await page.getByRole("button", { name: "Sign out" }).click();
+  await signOut.click();
+  await expect(
+    header.getByRole("link", { name: "Log in / Sign up" }),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Faculty", exact: true }).click();
   await expect(page).toHaveURL(/\/approvals$/);
+  await expect(account).toContainText("Demo faculty");
   await page
     .getByRole("listitem")
     .filter({ hasText: "Sensor calibration run" })
     .getByRole("button", { name: "Approve", exact: true })
     .click();
   await expect(page.getByRole("status")).toContainText("Request approved");
-  await page.getByRole("button", { name: "Sign out" }).click();
+  await signOut.click();
   await page.getByRole("button", { name: "Admin", exact: true }).click();
   await expect(page.getByText("Welcome, Demo admin.")).toBeVisible();
+  await expect(account).toContainText("Demo admin");
   await expect(
     page.getByRole("link", { name: "View approvals" }),
   ).toBeVisible();
@@ -54,7 +66,7 @@ test("three direct logins keep sample activity in the same browser", async ({
       (cookie) => cookie.name === "lablink_session",
     ),
   ).toBe(false);
-  await page.getByRole("button", { name: "Sign out" }).click();
+  await signOut.click();
   await page.getByRole("button", { name: "Student", exact: true }).click();
   await page.getByLabel("Show").selectOption("approved");
   await expect(page.locator(".request-list li")).toContainText(
@@ -168,7 +180,24 @@ test("mobile menu opens and lands on the three demo roles", async ({
   await expect(
     page.getByRole("button", { name: "Admin", exact: true }),
   ).toBeVisible();
+  await page.getByRole("button", { name: "Student", exact: true }).click();
+  await expect(page).toHaveURL(/\/workspace$/);
+  await page.getByRole("banner").getByRole("link", { name: "LabLink" }).click();
+  await expect(page).toHaveURL(/\/$/);
+  const account = page
+    .getByRole("banner")
+    .getByRole("group", { name: "Signed-in account" });
+  await expect(account).toContainText("Demo student");
+  await expect(menu).toHaveAttribute("aria-expanded", "false");
+  await expect(
+    account.getByRole("button", { name: "Sign out" }),
+  ).toBeInViewport();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(
     390,
   );
+  await account.getByRole("button", { name: "Sign out" }).click();
+  await expect(page).toHaveURL(/\/login$/);
+  await expect(account).toHaveCount(0);
+  await page.goto("/workspace");
+  await expect(page).toHaveURL(/\/login$/);
 });

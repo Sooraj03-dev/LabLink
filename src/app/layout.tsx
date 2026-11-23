@@ -25,6 +25,8 @@ const monoFont = localFont({
 });
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
+import { currentUser } from "@/server/session";
+import { sampleRole } from "@/server/sample-session";
 import "@/styles/globals.css";
 import "@/styles/workbench.css";
 
@@ -37,7 +39,18 @@ export const metadata: Metadata = {
     "Find specialised equipment, development kits and workstations across campus laboratories.",
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const user = await currentUser();
+  const demoRole = user ? undefined : await sampleRole();
+  const account = user
+    ? { name: user.displayName, role: user.role, demo: user.demo }
+    : demoRole
+      ? { name: "Demo " + demoRole, role: demoRole, demo: true }
+      : null;
   return (
     <html
       lang="en"
@@ -51,7 +64,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <a className="skip-link" href="#main-content">
           Skip to content
         </a>
-        <SiteHeader />
+        <SiteHeader account={account} />
         <main id="main-content" tabIndex={-1}>
           {children}
         </main>

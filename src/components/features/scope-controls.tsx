@@ -82,7 +82,7 @@ function Dial({
           }
         }}
       >
-        <title>{label} · drag up or use arrow keys</title>
+        <title>{label + " · drag up or use arrow keys"}</title>
         <circle r="18" fill="transparent" stroke="none" />
         <circle
           className="dial-ring"

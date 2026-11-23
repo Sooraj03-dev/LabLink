@@ -2,8 +2,14 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import type { Role } from "@/lib/auth";
+import { SignOutButton } from "@/components/features/account-controls";
 
-export function SiteHeader() {
+export function SiteHeader({
+  account,
+}: {
+  account: { name: string; role: Role; demo: boolean } | null;
+}) {
   const [open, setOpen] = useState(false),
     [scrolled, setScrolled] = useState(false);
   const button = useRef<HTMLButtonElement>(null);
@@ -20,8 +26,8 @@ export function SiteHeader() {
     ["How it works", "/#how-it-works"],
     ["About", "/#about"],
     ["My workspace", "/workspace"],
-    ["Log in / Sign up", "/login"],
   ];
+  if (!account) items.push(["Log in / Sign up", "/login"]);
   return (
     <header
       className="site-header"
@@ -82,6 +88,19 @@ export function SiteHeader() {
             </Link>
           ))}
         </nav>
+        {account && (
+          <div
+            className="header-account"
+            role="group"
+            aria-label="Signed-in account"
+          >
+            <div className="header-identity">
+              <strong title={account.name}>{account.name}</strong>
+              {!account.demo && <span>{account.role}</span>}
+            </div>
+            <SignOutButton />
+          </div>
+        )}
       </div>
     </header>
   );
