@@ -45,13 +45,17 @@ async function post(path: string, body: object) {
   return result;
 }
 
-async function startSession(auth: Auth, user: User) {
+async function startSession(auth: Auth, user: User, resource?: string) {
   try {
     const result = await post("/api/auth/session", {
       idToken: await user.getIdToken(),
     });
     window.location.assign(
-      result.destination === "/approvals" ? "/approvals" : "/workspace",
+      resource
+        ? "/workspace?resource=" + encodeURIComponent(resource)
+        : result.destination === "/approvals"
+          ? "/approvals"
+          : "/workspace",
     );
   } finally {
     await signOut(auth);
@@ -77,9 +81,11 @@ function authMessage(error: unknown) {
 export function SignIn({
   config,
   demo,
+  resource,
 }: {
   config: AuthClientConfig;
   demo: boolean;
+  resource?: string;
 }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -99,14 +105,14 @@ export function SignIn({
         const result = await getRedirectResult(auth);
         if (!result)
           throw new Error("Sign-in was interrupted. Please try again.");
-        await startSession(auth, result.user);
+        await startSession(auth, result.user, resource);
       } catch (error) {
         setMessage(authMessage(error));
         setBusy(false);
       }
     }
     void finish();
-  }, [config]);
+  }, [config, resource]);
 
   async function login(role?: Role) {
     setBusy(true);
@@ -116,12 +122,12 @@ export function SignIn({
       if (role) {
         const { token } = await post("/api/auth/demo", { role });
         const result = await signInWithCustomToken(auth, token);
-        await startSession(auth, result.user);
+        await startSession(auth, result.user, resource);
       } else {
         const provider = new GoogleAuthProvider();
         try {
           const result = await signInWithPopup(auth, provider);
-          await startSession(auth, result.user);
+          await startSession(auth, result.user, resource);
         } catch (error) {
           if (!(
             error &&

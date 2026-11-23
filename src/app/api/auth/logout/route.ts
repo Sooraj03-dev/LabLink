@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { appOrigin, authError, sameOrigin } from "@/server/auth-request";
 import { adminAuth } from "@/server/firebase";
 import { cookieName } from "@/server/session";
+import { sampleCookie } from "@/server/sample-session";
 
 export async function POST(request: NextRequest) {
   if (!sameOrigin(request))
@@ -38,6 +39,7 @@ export async function POST(request: NextRequest) {
     }
   }
   response.cookies.delete(cookieName);
+  response.cookies.delete(sampleCookie);
   response.headers.set("Cache-Control", "no-store");
   return response;
 }

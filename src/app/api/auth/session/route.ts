@@ -5,6 +5,7 @@ import { sessionLifetimeMs } from "@/lib/auth";
 import { authError, sameOrigin, withinLimit } from "@/server/auth-request";
 import { adminAuth, clientConfig, emulatorMode } from "@/server/firebase";
 import { cookieName, createProfile, identity } from "@/server/session";
+import { sampleCookie } from "@/server/sample-session";
 
 export async function POST(request: Request) {
   if (!sameOrigin(request))
@@ -41,6 +42,7 @@ export async function POST(request: Request) {
       { destination: user.role === "faculty" ? "/approvals" : "/workspace" },
       { headers: { "Cache-Control": "no-store" } },
     );
+    response.cookies.delete(sampleCookie);
     response.cookies.set(cookieName, value, {
       httpOnly: true,
       sameSite: "lax",

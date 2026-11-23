@@ -22,7 +22,10 @@ const post = (url, body, headers = {}) =>
 async function exchange(idToken) {
   const response = await post(origin + "/api/auth/session", { idToken });
   assert.equal(response.status, 200, "session exchange");
-  const header = response.headers.get("set-cookie");
+  const header = response.headers
+    .getSetCookie()
+    .find((value) => value.startsWith("lablink_session="));
+  assert.ok(header, "Firebase session cookie");
   assert.match(header, /HttpOnly/i);
   assert.match(header, /SameSite=lax/i);
   return {
