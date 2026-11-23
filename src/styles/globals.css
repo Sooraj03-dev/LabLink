@@ -206,6 +206,25 @@ select {
   color: var(--ink-muted);
 }
 
+.auth-actions {
+  display: grid;
+  justify-items: start;
+  gap: 1.4rem;
+}
+
+.auth-actions section {
+  border-top: 1px solid var(--line);
+  padding-block-start: 1.4rem;
+}
+
+.account-controls {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 2rem;
+}
+
 @media (max-width: 40rem) {
   .frame {
     width: min(100% - 2rem, 74rem);

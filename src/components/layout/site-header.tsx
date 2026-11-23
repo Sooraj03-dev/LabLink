@@ -19,7 +19,7 @@ export function SiteHeader() {
           <span>LabLink</span>
         </Link>
         <nav className="site-nav" aria-label="Main navigation">
-          <Link href="/#how-it-works">How it works</Link>
+          <Link href="/workspace">My workspace</Link>
           <Link className="button button-outline" href="/discover">
             Browse catalogue
           </Link>

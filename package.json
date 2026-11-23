@@ -8,11 +8,15 @@
   },
   "scripts": {
     "dev": "next dev --webpack",
+    "dev:demo": "firebase emulators:exec --only auth,firestore --project demo-lablink \"node scripts/dev-demo.mjs\"",
+    "emulators": "firebase emulators:start --only auth,firestore --project demo-lablink",
+    "seed:emulator": "node scripts/seed-demo.mjs",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
+    "test:auth": "firebase emulators:exec --only auth,firestore --project demo-lablink \"node tests/integration/auth.mjs\"",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "husky"
@@ -21,9 +25,13 @@
     "@fontsource-variable/fraunces": "^5.2.0",
     "@fontsource-variable/jetbrains-mono": "^5.2.0",
     "@fontsource-variable/public-sans": "^5.2.0",
+    "firebase": "^12.0.0",
+    "firebase-admin": "^13.0.0",
     "next": "16.4.6",
     "react": "19.3.1",
-    "react-dom": "19.3.1"
+    "react-dom": "19.3.1",
+    "server-only": "0.0.1",
+    "zod": "^4.0.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.3.3",
@@ -32,6 +40,7 @@
     "@types/react-dom": "^19.0.0",
     "eslint": "^9.39.5",
     "eslint-config-next": "16.4.6",
+    "firebase-tools": "^15.0.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.0.0",
     "postcss": "^8.5.0",
