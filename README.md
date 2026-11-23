@@ -2,21 +2,25 @@
 
 **Find campus equipment, request access, and turn an approval into a lab booking.**
 
-LabLink is a campus lab resource-sharing app. Students can explore equipment and plan project lab time, while faculty and admins review requests assigned to them. The current app includes eight sample resources and one bookable oscilloscope pilot.
+LabLink helps students find equipment and plan lab time across campus. Faculty and admins review requests assigned to them. The app includes eight sample resources and a bookable oscilloscope pilot.
 
-[Quick start](#quick-start) · [Try a booking](#try-a-booking) · [Configure Firebase and Gemini](#configure-firebase-and-gemini) · [Run the checks](#run-the-checks)
+[App pages](#app-pages) · [Quick start](#quick-start) · [Booking demo](#try-a-booking) · [Firebase and Gemini](#configure-firebase-and-gemini) · [Checks](#run-the-checks)
 
-![LabLink catalogue illustration of a mixed-signal oscilloscope](public/instruments/mixed-signal-oscilloscope.svg)
+![LabLink homepage with an interactive oscilloscope and links to the catalogue and demo](docs/lablink-preview.jpg)
 
-## What you can do
+## App pages
 
-| Feature                   | What it supports                                                                                                                                                          |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Catalogue**             | Search and filter eight sample instruments, kits, and workstations. Share filtered URLs and compare up to three sets of specifications side by side.                      |
-| **Access requests**       | Submit a project request with the hours needed. Assigned faculty and admin reviewers can approve or reject it.                                                            |
-| **Pilot booking**         | Choose a unit, date, start time, and duration from the next 14 days. Firestore transactions prevent overlapping reservations on the same unit and enforce approved hours. |
-| **Equipment assistant**   | Find equipment in everyday language, estimate lab time for a project, or compare alternatives. Results can show the pilot instrument’s next open half hour.               |
-| **Interactive lab bench** | Adjust the oscilloscope with drag or keyboard controls. The interface respects the system’s reduced-motion preference.                                                    |
+These links open the app on port 3000 after you start the local server.
+
+| Page                    | Local route                                                                    | Access           | What you can do                                                                                     |
+| ----------------------- | ------------------------------------------------------------------------------ | ---------------- | --------------------------------------------------------------------------------------------------- |
+| **Home**                | [`/`](http://localhost:3000/)                                                  | Public           | Try the interactive lab bench with drag or keyboard controls and explore featured equipment.        |
+| **Resource catalogue**  | [`/discover`](http://localhost:3000/discover)                                  | Public           | Search and filter equipment, bookmark the results, and compare up to three resources.               |
+| **Instrument details**  | [`/resources/[id]`](http://localhost:3000/resources/mixed-signal-oscilloscope) | Public           | View the gallery, specs, and lab location. The oscilloscope pilot also shows the next free session. |
+| **Equipment assistant** | [`/assistant`](http://localhost:3000/assistant)                                | Public           | Search in everyday language, estimate lab time, or find alternatives in another department.         |
+| **Sign in and demos**   | [`/login`](http://localhost:3000/login)                                        | Public           | Continue with campus Google sign-in or choose a Student, Faculty, or Admin demo.                    |
+| **My workspace**        | [`/workspace`](http://localhost:3000/workspace)                                | Signed in        | Request equipment, track decisions, and reserve time on the pilot after approval.                   |
+| **Approvals**           | [`/approvals`](http://localhost:3000/approvals)                                | Faculty or admin | Review assigned requests and approve or reject them.                                                |
 
 ## Quick start
 
@@ -40,7 +44,7 @@ Use the same browser and local URL throughout so the demo roles share the same s
 3. Choose **Sign out** in the top bar, then select **Student**.
 4. In **My workspace**, select **Book lab time** on the approved request. Choose a date, duration, and start time, then confirm. The reservation appears on the request.
 
-To repeat the flow, start as **Student** and submit a new request for the **Mixed-signal oscilloscope**. The **Admin** demo can also review assigned sample requests. Demo requests, approvals, and reservations stay in the browser.
+To repeat the flow, start as **Student** and submit a new request for the **Mixed-signal oscilloscope**. Demo requests, approvals, and reservations stay in the browser. In Firebase mode, a transaction prevents overlapping reservations on the same unit and enforces the approved hours within the 14-day booking window.
 
 For a Firebase-backed demo, run `pnpm dev:demo` with Java 21 or newer on your PATH. It starts local Auth and Firestore emulators, seeds the three roles and the pilot calendar, and launches Next.js. Stop the existing dev server first and open the loopback URL printed by the launcher. Emulator data resets when the emulators stop.
 
