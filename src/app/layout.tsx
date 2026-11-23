@@ -12,6 +12,7 @@ const displayFont = localFont({
 const bodyFont = localFont({
   src: "../../node_modules/@fontsource-variable/public-sans/files/public-sans-latin-wght-normal.woff2",
   variable: "--lab-body",
+  preload: false,
   display: "optional",
   weight: "100 900",
 });

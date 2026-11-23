@@ -21,11 +21,21 @@ pnpm typecheck
 pnpm test
 pnpm format:check
 pnpm build
+pnpm exec playwright install chromium
+pnpm test:browser
+pnpm test:assistant
+pnpm test:performance
 ```
 
-## Try sign-in locally
+The performance check uses a locally installed Chrome or Chromium. Set `CHROME_PATH` to its executable if automatic detection is unavailable.
 
-With Java 21 or newer on your PATH, stop the catalogue dev server and run `pnpm dev:demo`. This starts Firebase Authentication and Firestore on loopback, seeds three accounts and two review requests, and starts Next.js. Open the printed 127.0.0.1 URL and choose **My workspace**. Select **Faculty** to see the assigned requests, **Student** to browse the catalogue, or **Admin** to open the admin workspace. **Continue with Google** opens Firebase's simulated account chooser. The demo runs without credentials and resets when the emulators stop.
+## Try the three demos
+
+Open [the main login page](http://localhost:3000/login) and choose **Student**, **Faculty** or **Admin** under **Try the demo**. Requests and review decisions in these sample workspaces stay in this browser. For example, request a scope as a student, sign out, and open Faculty to review it. The Admin demo also has access to the sample review queue. Campus Google sign-in uses Firebase separately.
+
+## Test Firebase sign-in locally
+
+With Java 21 or newer on your PATH, stop the catalogue dev server and run `pnpm dev:demo`. This starts Firebase Authentication and Firestore on loopback, seeds three accounts and two review requests, and starts Next.js. Open the printed 127.0.0.1 URL and choose **My workspace**. Select **Faculty** to see the assigned requests, **Student** to request equipment, or **Admin** to open the admin workspace. **Continue with Google** opens Firebase's simulated account chooser. The demo runs without credentials and resets when the emulators stop.
 
 On Windows, you can select Android Studio's bundled Java 21 runtime for the current PowerShell session before launching the demo.
 
@@ -44,4 +54,12 @@ Set `CAMPUS_EMAIL_DOMAIN` to limit sign-in to verified accounts on a campus doma
 
 For the live blocked-popup fallback, configure your deployment's Firebase auth helper domain so redirect sign-in works in browsers that restrict third-party storage. [Firebase redirect sign-in setup](https://firebase.google.com/docs/auth/web/redirect-best-practices)
 
-The catalogue still uses eight sample resources. The review queue displays assigned requests. Booking, approval decisions and Gemini are future milestones.
+The catalogue still uses eight sample resources. The review queue displays assigned requests. Campus request submissions use the `reviewerIds` array on the corresponding `resources/{resourceId}` document. With no assigned reviewer, the workspace saves the request as a draft. Faculty and admin accounts can approve or reject requests assigned to them.
+
+## Equipment assistant
+
+Open `/assistant` from the catalogue or choose **Plan equipment with AI** in a workspace. Search in everyday language, estimate equipment hours for a project, or compare an in-use instrument with available items of the same type in another department. Recommendations link to verified catalogue IDs. Students review and submit their own requests. Inventory counts describe the sample catalogue and carry no booking guarantee.
+
+To enable the server-side Gemini provider, set `AI_ENABLED=true`, `GENAI_PROVIDER=gemini`, `GENAI_MODEL` and `GEMINI_API_KEY` in the server environment. Keep the key in the ignored local environment file or the deployment secret store. Set `GENAI_PROVIDER=mock` for deterministic previews. Disabled AI, quota exhaustion, provider errors and timeouts return labelled keyword matches.
+
+The provider receives the entered description, optional deadline and public equipment data. Only structured equipment selections pass through to the UI. Live calls share a 100-call daily cap with a 20-call allowance per verified account and a shared 20-call allowance for visitors and browser demos. These counters use Firestore. Identical successful queries are cached in process for ten minutes.

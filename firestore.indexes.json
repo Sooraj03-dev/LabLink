@@ -11,6 +11,12 @@
   ],
   "fieldOverrides": [
     {
+      "collectionGroup": "aiUsage",
+      "fieldPath": "expiresAt",
+      "ttl": true,
+      "indexes": []
+    },
+    {
       "collectionGroup": "authRateLimits",
       "fieldPath": "expiresAt",
       "ttl": true,

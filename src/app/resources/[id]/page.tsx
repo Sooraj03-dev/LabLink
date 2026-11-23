@@ -91,6 +91,14 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
             >
               Request access
             </Link>
+            {inventory(id).free === 0 && (
+              <Link
+                className="text-link"
+                href={"/assistant?mode=compare&resource=" + id}
+              >
+                Compare available alternatives
+              </Link>
+            )}
           </section>
         </BenchPanel>
       </div>

@@ -85,3 +85,13 @@ Removed the uppercase hero eyebrow and the orange headline phrase from the propo
 Capture the start, middle and end at 1440×900, 1024×768 and 390×844 in paper and night themes. Check headline clearance, knob reach, annotation overlap and reflow. Remove one detail that competes with the scope after visual review.
 
 Add Playwright checks for a trace that stays still for 500ms with reduced motion, ArrowRight increasing the knob value, and axe results in both themes. Measure the production build against mobile LCP ≤2.5s, CLS 0, hero client code ≤12KB gzip, total added JavaScript ≤25KB gzip and zero animation-caused tasks over 50ms. Run Lighthouse CI, lint, type checking and tests, and record measured results alongside the corresponding changes.
+
+## Implemented and checked
+
+The expanded brief adds illustrative inventory counts. The three bench labels now link to the corresponding catalogue entries and show their sample stock. On desktop the labels sit at the ends of the leader lines. On narrower screens they sit below the drawing. Visual review covered the start, midpoint and end of the entrance in both themes at all three planned sizes. The final layout keeps the headline to three lines at the reference sizes, removes two redundant bench-surface strokes and fits the tablet viewport.
+
+The browser suite checks all three main-page demo roles, a student submission and faculty approval, catalogue filters and layout, the equipment gallery, mobile navigation, keyboard input and reduced motion. The homepage passed axe in paper and night themes. A separate exercise against the local Firebase emulators verified that the reviewed request persisted with the assigned reviewer's ID.
+
+Compared with a clean production build of `2423937`, the sum of gzipped JavaScript files in `.next/static/chunks` grew by 22,661 bytes including the equipment assistant. The homepage-specific client chunk is 2,105 bytes gzip. On the local phone-sized Edge viewport, a PerformanceObserver recorded zero tasks over 50 ms during the power-on sequence and a subsequent eight-second trace cycle.
+
+With the assistant included, the final three-run Lighthouse CI check measured a median mobile largest contentful paint of 761 ms and cumulative layout shift of zero on the local production build.

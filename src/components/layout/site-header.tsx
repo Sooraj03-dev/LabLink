@@ -34,7 +34,7 @@ export function SiteHeader() {
       }}
     >
       <div className="frame header-inner">
-        <Link className="wordmark" href="/">
+        <Link prefetch={false} className="wordmark" href="/">
           <svg viewBox="0 0 36 36" width="36" height="36" aria-hidden="true">
             <rect width="36" height="36" rx="2" fill="currentColor" />
             <path
@@ -69,6 +69,7 @@ export function SiteHeader() {
         >
           {items.map(([label, href]) => (
             <Link
+              prefetch={false}
               key={label}
               href={href || "/"}
               aria-current={path === href ? "page" : undefined}

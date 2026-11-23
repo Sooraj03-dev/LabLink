@@ -7,6 +7,16 @@ import { sampleRequests } from "@/lib/requests";
 import { StatsReadout } from "@/components/features/stats-readout";
 import { CategoryIcon } from "@/components/ui/category-icon";
 
+// Start the first-visit entrance before the initial paint. Client navigation uses BenchPlayback.
+const powerOn = `try {
+  const hero = document.currentScript.parentElement;
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches && !sessionStorage.getItem('lablink.power-on')) {
+    sessionStorage.setItem('lablink.power-on', '1');
+    hero.dataset.power = 'on';
+    setTimeout(() => delete hero.dataset.power, 1350);
+  }
+} catch {}`;
+
 const steps = [
   [
     "Browse equipment",
@@ -34,7 +44,11 @@ export default function HomePage() {
   const labs = new Set(sampleResources.map((r) => r.lab)).size;
   return (
     <>
-      <section className="hero" aria-labelledby="hero-title">
+      <section
+        className="hero"
+        aria-labelledby="hero-title"
+        suppressHydrationWarning
+      >
         <div className="frame hero-layout">
           <div className="hero-copy">
             <h1 id="hero-title" aria-label="The right kit for every project.">
@@ -51,16 +65,25 @@ export default function HomePage() {
               Bring your next project to the lab bench.
             </p>
             <div className="hero-actions">
-              <Link className="button button-primary" href="/discover">
+              <Link
+                prefetch={false}
+                className="button button-primary"
+                href="/discover"
+              >
                 Explore the catalogue
               </Link>
-              <Link className="text-link" href="/login#demo-heading">
+              <Link
+                prefetch={false}
+                className="text-link"
+                href="/login#demo-heading"
+              >
                 Try a demo
               </Link>
             </div>
           </div>
           <LabBench />
         </div>
+        <script dangerouslySetInnerHTML={{ __html: powerOn }} />
       </section>
       <section className="home-stats">
         <div className="frame">
@@ -88,7 +111,7 @@ export default function HomePage() {
             <p className="section-label">Featured equipment</p>
             <h2>On the bench</h2>
           </div>
-          <Link className="text-link" href="/discover">
+          <Link prefetch={false} className="text-link" href="/discover">
             View catalogue
           </Link>
         </div>
@@ -106,7 +129,10 @@ export default function HomePage() {
           <ul className="category-list">
             {categories.map((name, i) => (
               <li key={name}>
-                <Link href={"/discover?category=" + encodeURIComponent(name)}>
+                <Link
+                  prefetch={false}
+                  href={"/discover?category=" + encodeURIComponent(name)}
+                >
                   <CategoryIcon index={i} />
                   <span>{name}</span>
                   <small>
@@ -144,7 +170,11 @@ export default function HomePage() {
               </p>
               <h3>{title}</h3>
               <p>{copy}</p>
-              <Link className="text-link" href={url || "/discover"}>
+              <Link
+                prefetch={false}
+                className="text-link"
+                href={url || "/discover"}
+              >
                 {action}
               </Link>
             </article>
@@ -154,7 +184,11 @@ export default function HomePage() {
       <section className="frame home-section">
         <div className="section-head">
           <h2>Recently added</h2>
-          <Link className="text-link" href="/discover?sort=recent">
+          <Link
+            prefetch={false}
+            className="text-link"
+            href="/discover?sort=recent"
+          >
             View newest first
           </Link>
         </div>
@@ -163,7 +197,9 @@ export default function HomePage() {
             .slice(0, 3)
             .map((r) => (
               <li key={r.id}>
-                <Link href={"/resources/" + r.id}>{r.name}</Link>
+                <Link prefetch={false} href={"/resources/" + r.id}>
+                  {r.name}
+                </Link>
                 <span>{r.lab}</span>
                 <time dateTime={inventory(r.id).added}>
                   {inventory(r.id).added}
@@ -182,7 +218,11 @@ export default function HomePage() {
               departments.
             </p>
           </div>
-          <Link className="button button-primary" href="/discover">
+          <Link
+            prefetch={false}
+            className="button button-primary"
+            href="/discover"
+          >
             Find equipment
           </Link>
         </div>

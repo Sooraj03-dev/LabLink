@@ -251,3 +251,10 @@ select {
     transform: none;
   }
 }
+/* On small screens, reserve the first font request for the display face. */
+@media (max-width: 47.99rem) {
+  :root {
+    --font-sans: system-ui, sans-serif;
+    --font-mono: ui-monospace, monospace;
+  }
+}

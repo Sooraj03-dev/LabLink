@@ -70,6 +70,10 @@ export default async function DiscoverPage({
         </p>
       </div>
 
+      <Link className="assistant-entry" href="/assistant">
+        <span>Equipment assistant</span>
+        <small>Search by project or compare alternatives</small>
+      </Link>
       <Form
         className="filters"
         action="/discover"

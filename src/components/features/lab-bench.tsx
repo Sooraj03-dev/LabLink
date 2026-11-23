@@ -261,7 +261,7 @@ export function LabBench() {
           ].map(
             ([id, name]) =>
               id && (
-                <Link key={id} href={"/resources/" + id}>
+                <Link prefetch={false} key={id} href={"/resources/" + id}>
                   {name}
                   <small>{inventory(id).free} free · sample</small>
                 </Link>

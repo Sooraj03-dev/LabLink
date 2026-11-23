@@ -1,3 +1,6 @@
 .next/
 next-env.d.ts
 pnpm-lock.yaml
+.lighthouseci/
+test-results/
+playwright-report/

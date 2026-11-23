@@ -10,6 +10,9 @@ export default defineConfig([
   },
   globalIgnores([
     ".next/**",
+    ".lighthouseci/**",
+    "test-results/**",
+    "playwright-report/**",
     "out/**",
     "coverage/**",
     "next-env.d.ts",

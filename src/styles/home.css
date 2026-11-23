@@ -52,6 +52,7 @@
   display: block;
 }
 .hero .intro {
+  font-family: system-ui, sans-serif;
   margin-top: 1.8rem;
   max-width: 45ch;
   color: #c6d4d8;

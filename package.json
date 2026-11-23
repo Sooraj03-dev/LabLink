@@ -16,6 +16,9 @@
     "lint": "eslint . --max-warnings=0",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
+    "test:browser": "playwright test",
+    "test:performance": "lhci collect && lhci assert",
+    "test:assistant": "node tests/integration/assistant.mjs",
     "test:auth": "firebase emulators:exec --only auth,firestore --project demo-lablink \"node tests/integration/auth.mjs\"",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -25,6 +28,7 @@
     "@fontsource-variable/fraunces": "^5.2.0",
     "@fontsource-variable/jetbrains-mono": "^5.2.0",
     "@fontsource-variable/public-sans": "^5.2.0",
+    "@google/genai": "^3.6.1",
     "firebase": "^12.0.0",
     "firebase-admin": "^13.0.0",
     "next": "16.4.6",
@@ -34,6 +38,9 @@
     "zod": "^4.0.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@lhci/cli": "^0.16.1",
+    "@playwright/test": "^1.65.1",
     "@tailwindcss/postcss": "4.3.3",
     "@types/node": "^24.0.0",
     "@types/react": "^19.0.0",

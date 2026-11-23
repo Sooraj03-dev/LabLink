@@ -161,6 +161,9 @@ export function Dashboard({
         <Link className="button button-outline" href="/discover">
           Browse catalogue
         </Link>
+        <Link className="text-link" href="/assistant?mode=plan">
+          Plan equipment with AI
+        </Link>
         {role !== "student" && (
           <Link
             className="text-link"

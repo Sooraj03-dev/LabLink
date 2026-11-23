@@ -443,3 +443,90 @@ dialog[open] {
 .scope-play {
   white-space: nowrap;
 }
+.assistant-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem 1rem;
+  flex-wrap: wrap;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--signal);
+  padding: 1rem 1.3rem;
+  background: var(--surface);
+  margin-bottom: 1rem;
+}
+.assistant-entry span {
+  font: 600 1.35rem var(--font-serif);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.assistant-entry small,
+.assistant-results li > p {
+  color: var(--ink-muted);
+}
+.assistant-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(1rem, 4vw, 3.5rem);
+  align-items: start;
+}
+.assistant-form,
+.assistant-results {
+  background: var(--surface);
+  padding: clamp(1rem, 3vw, 2rem);
+  border: 1px solid var(--line);
+}
+.assistant-form fieldset,
+.assistant-form label {
+  display: grid;
+  gap: 0.45rem;
+  min-width: 0;
+}
+.assistant-form fieldset {
+  gap: 1.2rem;
+}
+.assistant-form label {
+  font-weight: 650;
+}
+.assistant-form :is(textarea, select, input) {
+  border: 1px solid var(--control-line);
+  border-radius: 2px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 400;
+  width: 100%;
+  padding: 0.65rem;
+}
+.assistant-form textarea {
+  resize: vertical;
+  min-height: 6rem;
+}
+.assistant-form button {
+  justify-self: start;
+}
+.assistant-results {
+  border-left: 4px double var(--control-line);
+}
+.assistant-results h2 {
+  margin-bottom: 0.8rem;
+}
+.assistant-results li {
+  padding-block: 1rem;
+  border-top: 1px solid var(--line);
+}
+.assistant-results ol {
+  margin-top: 1rem;
+}
+.assistant-results h3 {
+  font: 600 1.4rem var(--font-serif);
+}
+.assistant-results h3 a {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+@media (max-width: 47.99rem) {
+  .assistant-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
