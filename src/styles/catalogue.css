@@ -1,0 +1,246 @@
+.inner-page {
+  padding-block: clamp(2.25rem, 5vw, 4.5rem);
+}
+
+.page-heading {
+  margin-block-end: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.page-heading h1 {
+  margin-block: 0.45rem 0.85rem;
+  font-size: clamp(2.55rem, 6.5vw, 4.9rem);
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1.35fr) repeat(3, minmax(0, 1fr)) auto;
+  align-items: end;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.filters label {
+  display: grid;
+  min-inline-size: 0;
+  gap: 0.35rem;
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+
+.filters input,
+.filters select {
+  width: 100%;
+  min-inline-size: 0;
+  min-block-size: 2.9rem;
+  border: 1px solid var(--control-line);
+  border-radius: 2px;
+  padding: 0.45rem 0.6rem;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.filters input::placeholder {
+  color: var(--ink-muted);
+}
+
+.filters .button {
+  min-block-size: 2.9rem;
+}
+
+.results-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0 1rem;
+  min-block-size: 2.75rem;
+  margin-block: 1.1rem 0.25rem;
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+}
+
+.resource-grid,
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.resource-grid {
+  list-style: none;
+}
+
+.bench-panel {
+  min-inline-size: 0;
+  height: 100%;
+  border: 1px solid var(--line);
+  border-block-start: 3px solid var(--control-line);
+  background: var(--surface);
+}
+
+.bench-panel:focus-within {
+  border-block-start-color: var(--signal-text);
+}
+
+.resource-card,
+.lab-location {
+  padding: clamp(1rem, 3vw, 1.5rem);
+}
+
+.resource-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.75rem;
+  margin-block-end: 0.4rem;
+  color: var(--ink-muted);
+  font: 0.8125rem/1.45 var(--font-mono);
+}
+
+.specimen-tag {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  max-width: 100%;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: var(--tag-paper);
+  color: var(--ink);
+  font: 0.8125rem/1.45 var(--font-mono);
+}
+
+.specimen-tag::before {
+  content: "";
+  align-self: center;
+  flex: 0 0 0.38rem;
+  height: 0.38rem;
+  border: 1px solid var(--control-line);
+  border-radius: 50%;
+  background: var(--surface);
+}
+
+.resource-card h2,
+.resource-card h3,
+.lab-location h2,
+.spec-table caption {
+  font: 600 clamp(1.35rem, 3.6vw, 1.85rem)/1.15 var(--font-serif);
+  letter-spacing: -0.035em;
+}
+
+.resource-card a {
+  display: inline-block;
+  min-block-size: 1.5rem;
+  padding-block: 0.2rem;
+  text-decoration: underline;
+  text-decoration-color: var(--control-line);
+  text-underline-offset: 0.2em;
+}
+
+.resource-card a:hover {
+  text-decoration-color: var(--signal-text);
+}
+
+.resource-location {
+  color: var(--ink-muted);
+}
+
+.resource-specs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.75rem;
+  margin-block-start: 1rem;
+  padding-block-start: 0.85rem;
+  border-block-start: 1px solid var(--line);
+}
+
+.readout dt {
+  color: var(--ink-muted);
+  font-size: 0.875rem;
+}
+
+.readout dd,
+.spec-table td {
+  font-family: var(--font-mono);
+}
+
+.empty-state {
+  padding: 2rem 1.25rem;
+  border: 1px dashed var(--control-line);
+  background: var(--surface);
+}
+
+.empty-state h2 {
+  margin-block-end: 0.5rem;
+  font-size: 1.5rem;
+}
+
+.breadcrumbs {
+  margin-block-end: 0.7rem;
+}
+
+.spec-table {
+  width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.spec-table caption {
+  padding: 1rem 1.25rem;
+  text-align: start;
+}
+
+.spec-table th,
+.spec-table td {
+  padding: 0.7rem 1.25rem;
+  border-block-start: 1px solid var(--line);
+  text-align: start;
+}
+
+.lab-location p {
+  margin-block: 0.75rem;
+}
+
+.related {
+  margin-block-start: 2.5rem;
+}
+
+.related > h2 {
+  margin-block-end: 1rem;
+}
+
+@media (max-width: 64rem) {
+  .filters {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .filter-search {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 40rem) {
+  .filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .resource-grid,
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 24rem) {
+  .filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .filter-search {
+    grid-column: auto;
+  }
+}

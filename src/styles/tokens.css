@@ -1,0 +1,41 @@
+:root {
+  color-scheme: light dark;
+  --paper: #f4f1e8;
+  --surface: #fbfaf6;
+  --ink: #14202b;
+  --ink-muted: #43525d;
+  --line: #c9c8be;
+  --control-line: #77838b;
+  --grid: #243c4410;
+  --grid-major: #243c4416;
+  --signal: #e8590c;
+  --signal-hover: #fc752f;
+  --on-signal: #14202b;
+  --signal-text: #a53706;
+  --focus-ring: #a53706;
+  --tag-paper: #f0e7d7;
+  --bench-background: #152431;
+  --bench-grid: #2a4050;
+  --bench-stroke: #708c9a;
+  --bench-shadow: #101d28;
+  --bench-highlight: #c7d7da;
+  --bench-instrument: #314955;
+  --bench-instrument-dark: #223641;
+  --bench-board: #244f42;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #14202b;
+    --surface: #1a2935;
+    --ink: #f4f1e8;
+    --ink-muted: #bfccce;
+    --line: #415561;
+    --control-line: #849da7;
+    --grid: #b5cacc13;
+    --grid-major: #b5cacc19;
+    --signal-text: #ff9a64;
+    --focus-ring: #ff9a64;
+    --tag-paper: #34404a;
+  }
+}
