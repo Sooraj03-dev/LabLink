@@ -1,9 +1,8 @@
+import Image from "next/image";
 import Link from "next/link";
 import { approvalLabels, resourceTypes, type Resource } from "@/lib/catalogue";
-import { BenchPanel } from "@/components/ui/bench-panel";
-import { Readout } from "@/components/ui/readout";
+import { inventory } from "@/lib/inventory";
 import { SpecimenTag } from "@/components/ui/specimen-tag";
-
 export function ResourceCard({
   resource,
   heading: Heading = "h2",
@@ -11,25 +10,43 @@ export function ResourceCard({
   resource: Resource;
   heading?: "h2" | "h3";
 }) {
+  const href = "/resources/" + resource.id,
+    stock = inventory(resource.id);
   return (
-    <BenchPanel>
-      <article className="resource-card">
-        <div className="resource-meta">
-          <span>{resourceTypes[resource.type]}</span>
-          <SpecimenTag>{approvalLabels[resource.approval]}</SpecimenTag>
+    <article className="equipment-card">
+      <div className="instrument-image">
+        <Image
+          src={"/instruments/" + resource.id + ".svg"}
+          alt=""
+          width={480}
+          height={240}
+          unoptimized
+        />
+        <span className="category-label">{resourceTypes[resource.type]}</span>
+      </div>
+      <div className="equipment-body">
+        <div className="stock-label">
+          <span data-free={stock.free > 0} />
+          {stock.free ? stock.free + " available" : "In use"} · sample
         </div>
         <Heading>
-          <Link href={`/resources/${resource.id}`}>{resource.name}</Link>
+          <Link href={href}>{resource.name}</Link>
         </Heading>
         <p className="resource-location">
-          {resource.lab} · {resource.department}
+          {resource.lab} · {resource.location}
         </p>
-        <dl className="resource-specs">
-          {resource.specs.slice(0, 2).map(({ label, value }) => (
-            <Readout key={label} label={label} value={value} />
-          ))}
-        </dl>
-      </article>
-    </BenchPanel>
+        <p>{resource.description}</p>
+        <div className="equipment-foot">
+          <SpecimenTag>{approvalLabels[resource.approval]}</SpecimenTag>
+          <Link
+            className="text-link"
+            href={href}
+            aria-label={"View details for " + resource.name}
+          >
+            View details
+          </Link>
+        </div>
+      </div>
+    </article>
   );
 }

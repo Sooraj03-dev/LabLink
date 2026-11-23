@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ResourceGallery } from "@/components/features/resource-gallery";
+import { TrackView } from "@/components/features/recent-views";
+import { inventory } from "@/lib/inventory";
 import { notFound } from "next/navigation";
 import { ResourceCard } from "@/components/features/resource-card";
 import { BenchPanel } from "@/components/ui/bench-panel";
@@ -52,6 +55,8 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
         <p className="intro">{resource.description}</p>
       </div>
 
+      <TrackView id={id} />
+      <ResourceGallery id={id} name={resource.name} />
       <div className="detail-grid">
         <BenchPanel>
           <table className="spec-table">
@@ -78,8 +83,14 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
             </p>
             <SpecimenTag>{approvalLabels[resource.approval]}</SpecimenTag>
             <p className="muted">
-              Live booking requires a connected campus lab.
+              {inventory(id).free} units available in the sample inventory.
             </p>
+            <Link
+              className="button button-primary"
+              href={"/workspace?resource=" + id}
+            >
+              Request access
+            </Link>
           </section>
         </BenchPanel>
       </div>

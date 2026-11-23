@@ -1,7 +1,4 @@
 @import "tailwindcss";
-@import "@fontsource-variable/fraunces";
-@import "@fontsource-variable/public-sans";
-@import "@fontsource-variable/jetbrains-mono";
 @import "./tokens.css";
 @import "./home.css";
 @import "./catalogue.css";
@@ -11,9 +8,9 @@
   --color-surface: var(--surface);
   --color-ink: var(--ink);
   --color-signal: var(--signal);
-  --font-sans: "Public Sans Variable", system-ui, sans-serif;
-  --font-serif: "Fraunces Variable", Georgia, serif;
-  --font-mono: "JetBrains Mono Variable", ui-monospace, monospace;
+  --font-sans: var(--lab-body), system-ui, sans-serif;
+  --font-serif: var(--lab-display), Georgia, serif;
+  --font-mono: var(--lab-mono), ui-monospace, monospace;
 }
 
 body {

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Form from "next/form";
+import { categories, inventory } from "@/lib/inventory";
 import { ResourceCard } from "@/components/features/resource-card";
 import {
   approvalLabels,
@@ -18,24 +20,60 @@ export default async function DiscoverPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
-  const filters = parseCatalogueFilters(await searchParams);
-  const resources = filterResources(sampleResources, filters);
+  const params = await searchParams;
+  const filters = parseCatalogueFilters(params);
+  const category = categories.find((item) => item === params.category) ?? "";
+  const availability =
+    params.availability === "free"
+      ? "free"
+      : params.availability === "busy"
+        ? "busy"
+        : "";
+  const sort =
+    params.sort === "recent" ? "recent" : params.sort === "name" ? "name" : "";
+  const view = params.view === "list" ? "list" : "grid";
+  const resources = filterResources(sampleResources, filters).filter((r) => {
+    const stock = inventory(r.id);
+    return (
+      (!category || stock.categories.includes(category)) &&
+      (!availability ||
+        (availability === "free" ? stock.free > 0 : stock.free === 0))
+    );
+  });
+  if (sort === "recent")
+    resources.sort((a, b) =>
+      inventory(b.id).added.localeCompare(inventory(a.id).added),
+    );
+  if (sort === "name") resources.sort((a, b) => a.name.localeCompare(b.name));
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries({
+    q: filters.query,
+    type: filters.type,
+    department: filters.department,
+    approval: filters.approval,
+    category,
+    availability,
+    sort,
+  })) {
+    if (value) query.set(key, value);
+  }
+  const active = query.toString();
 
   return (
     <div className="frame inner-page">
       <div className="page-heading">
-        <p className="eyebrow">Sample catalogue</p>
+        <p className="section-label">Sample catalogue</p>
         <h1>Resource catalogue</h1>
         <p className="intro">
-          Explore example equipment, kits and workstations. Availability will
-          appear once campus labs are connected.
+          Compare equipment, kits and workstations across campus. Availability
+          reflects the sample inventory.
         </p>
       </div>
 
-      <form
+      <Form
         className="filters"
         action="/discover"
-        method="get"
+        key={"filters:" + active + view}
         role="search"
         aria-label="Resource catalogue"
       >
@@ -80,26 +118,69 @@ export default async function DiscoverPage({
             ))}
           </select>
         </label>
+        <label>
+          Field
+          <select name="category" defaultValue={category}>
+            <option value="">All fields</option>
+            {categories.map((c) => (
+              <option key={c}>{c}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Availability
+          <select name="availability" defaultValue={availability}>
+            <option value="">Any availability</option>
+            <option value="free">Available</option>
+            <option value="busy">In use</option>
+          </select>
+        </label>
+        <label>
+          Sort by
+          <select name="sort" defaultValue={sort}>
+            <option value="">Catalogue order</option>
+            <option value="recent">Recently added</option>
+            <option value="name">Name A–Z</option>
+          </select>
+        </label>
+        <input type="hidden" name="view" value={view} />
         <button className="button button-primary" type="submit">
           Apply filters
         </button>
-      </form>
+      </Form>
 
       <div className="results-heading">
-        <p>
+        <p aria-live="polite" key={active} className="result-count">
           {resources.length} {resources.length === 1 ? "resource" : "resources"}
         </p>
-        {(filters.query ||
-          filters.type ||
-          filters.department ||
-          filters.approval) && (
+        {active && (
           <Link className="text-link" href="/discover">
             Clear filters
           </Link>
         )}
       </div>
+      <nav className="view-options" aria-label="Catalogue layout">
+        {["grid", "list"].map((v) => (
+          <Link
+            key={v}
+            aria-current={v === view ? "true" : undefined}
+            href={
+              "/discover?" +
+              new URLSearchParams([...query.entries(), ["view", v]]).toString()
+            }
+          >
+            {v} view
+          </Link>
+        ))}
+      </nav>
       {resources.length > 0 ? (
-        <ul className="resource-grid">
+        <ul
+          className={
+            "resource-grid catalogue-results " +
+            (view === "list" ? "list-view" : "")
+          }
+          key={"results:" + active + view}
+        >
           {resources.map((resource) => (
             <li key={resource.id}>
               <ResourceCard resource={resource} />
