@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Form from "next/form";
 import { categories, inventory } from "@/lib/inventory";
-import { ResourceCard } from "@/components/features/resource-card";
+import { CatalogueShell } from "@/components/features/catalogue-shell";
 import {
   approvalLabels,
   departments,
@@ -60,7 +60,7 @@ export default async function DiscoverPage({
   const active = query.toString();
 
   return (
-    <div className="frame inner-page">
+    <div className="frame inner-page app-grid-bg">
       <div className="page-heading">
         <p className="section-label">Sample catalogue</p>
         <h1>Resource catalogue</h1>
@@ -163,8 +163,8 @@ export default async function DiscoverPage({
           </Link>
         )}
       </div>
-      <nav className="view-options" aria-label="Catalogue layout">
-        {["grid", "list"].map((v) => (
+      <nav className="view-toggle" aria-label="Catalogue layout">
+        {(["grid", "list"] as const).map((v) => (
           <Link
             key={v}
             aria-current={v === view ? "true" : undefined}
@@ -173,30 +173,15 @@ export default async function DiscoverPage({
               new URLSearchParams([...query.entries(), ["view", v]]).toString()
             }
           >
-            {v} view
+            {v === "grid" ? "Grid view" : "List view"}
           </Link>
         ))}
       </nav>
-      {resources.length > 0 ? (
-        <ul
-          className={
-            "resource-grid catalogue-results " +
-            (view === "list" ? "list-view" : "")
-          }
-          key={"results:" + active + view}
-        >
-          {resources.map((resource) => (
-            <li key={resource.id}>
-              <ResourceCard resource={resource} />
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <div className="empty-state">
-          <h2>No matching resources</h2>
-          <p>Try a different search term or choose fewer filters.</p>
-        </div>
-      )}
+      <CatalogueShell
+        view={view}
+        resultKey={"results:" + active + view}
+        resources={resources}
+      />
     </div>
   );
 }

@@ -149,10 +149,17 @@ select {
   font-weight: 700;
   text-align: center;
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
 }
 
 .button:active {
   transform: translateY(1px);
+}
+
+.button:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 3px;
 }
 
 .button-primary {
@@ -203,6 +210,192 @@ select {
   color: var(--ink-muted);
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ── Graph-paper grid background for workspace/dashboard ── */
+.app-grid-bg {
+  position: relative;
+}
+.app-grid-bg::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+    linear-gradient(var(--grid-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-major) 1px, transparent 1px);
+  background-size:
+    24px 24px,
+    24px 24px,
+    120px 120px,
+    120px 120px;
+}
+
+/* ── BenchPanel registration marks ── */
+.bench-panel {
+  position: relative;
+}
+.reg-mark {
+  position: absolute;
+  pointer-events: none;
+}
+.reg-tl {
+  top: -1px;
+  left: -1px;
+}
+.reg-tr {
+  top: -1px;
+  right: -1px;
+}
+.reg-bl {
+  bottom: -1px;
+  left: -1px;
+}
+.reg-br {
+  bottom: -1px;
+  right: -1px;
+}
+
+/* ── RuleDivider ── */
+.rule-divider {
+  border: none;
+  border-top: 1px solid var(--line);
+  margin: 0;
+  position: relative;
+}
+.rule-divider::after {
+  content: "";
+  display: block;
+  border-top: 1px solid var(--line);
+  margin-top: 2px;
+}
+
+/* ── Specimen tag with eyelet & swing ── */
+.specimen-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  max-width: 100%;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: var(--tag-paper);
+  color: var(--ink);
+  font: 0.8125rem/1.45 var(--font-mono);
+  transform-origin: 0.6rem center;
+}
+.specimen-tag::before {
+  content: none; /* replaced by SVG eyelet */
+}
+.tag-eyelet,
+.tag-string {
+  flex: none;
+}
+.tag-icon {
+  flex: none;
+  color: var(--ink-muted);
+}
+.specimen-tag[data-animate] {
+  transition: transform 220ms ease-out;
+}
+
+/* ── Ink-drop ripple ── */
+.ink-ripple-host {
+  position: relative;
+  display: inline-flex;
+  overflow: hidden;
+}
+.ink-drop {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--signal);
+  opacity: 0.18;
+  transform: scale(0);
+  animation: ink-expand 400ms ease-out forwards;
+  pointer-events: none;
+}
+@keyframes ink-expand {
+  to {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+/* ── Confirmation stamp ── */
+.confirmation-stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.stamp-text {
+  font: 700 0.9rem var(--font-mono);
+  color: #26694a;
+  letter-spacing: 0.08em;
+}
+.confirmation-stamp--animate .stamp-text {
+  animation: stamp-spring 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes stamp-spring {
+  from {
+    transform: scale(1.6) rotate(-3deg);
+    opacity: 0.3;
+  }
+  to {
+    transform: scale(1) rotate(0);
+    opacity: 1;
+  }
+}
+.confirmation-stamp--animate .stamp-burst {
+  animation: burst-pop 400ms ease-out;
+}
+@keyframes burst-pop {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  70% {
+    transform: scale(1.3);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+/* ── Hover row telemetry bar ── */
+.request-row {
+  position: relative;
+}
+.request-row::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--signal);
+  transform: scaleY(0);
+  transform-origin: center;
+  transition: transform 180ms ease-out;
+}
+.request-row:is(:hover, :focus-within)::before {
+  transform: scaleY(1);
+}
+
 .auth-actions {
   display: grid;
   justify-items: start;
@@ -249,6 +442,14 @@ select {
 
   .button:active {
     transform: none;
+  }
+
+  .request-row::before {
+    display: none;
+  }
+
+  .app-grid-bg::before {
+    animation: none;
   }
 }
 /* On small screens, reserve the first font request for the display face. */

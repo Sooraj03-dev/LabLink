@@ -103,29 +103,6 @@
   font: 0.8125rem/1.45 var(--font-mono);
 }
 
-.specimen-tag {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.45rem;
-  max-width: 100%;
-  padding: 0.2rem 0.5rem;
-  border: 1px solid var(--line);
-  border-radius: 2px;
-  background: var(--tag-paper);
-  color: var(--ink);
-  font: 0.8125rem/1.45 var(--font-mono);
-}
-
-.specimen-tag::before {
-  content: "";
-  align-self: center;
-  flex: 0 0 0.38rem;
-  height: 0.38rem;
-  border: 1px solid var(--control-line);
-  border-radius: 50%;
-  background: var(--surface);
-}
-
 .resource-card h2,
 .resource-card h3,
 .lab-location h2,
@@ -214,6 +191,288 @@
   margin-block-end: 1rem;
 }
 
+/* ── Compact monospace spec readout on cards ── */
+.card-specs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.9rem;
+  font: 500 0.75rem/1.4 var(--font-mono);
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+.card-spec {
+  white-space: nowrap;
+}
+.card-spec + .card-spec::before {
+  content: "·";
+  margin-right: 0.9rem;
+  opacity: 0.5;
+}
+
+/* ── 7-day availability strip ── */
+.availability-strip {
+  display: flex;
+  align-items: end;
+  gap: 0.45rem;
+  margin-top: 0.3rem;
+}
+.avail-label {
+  font: 400 0.65rem var(--font-mono);
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+/* ── Compare button on card ── */
+.card-compare-slot {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.65rem;
+  z-index: 1;
+}
+.compare-btn {
+  font: 600 0.7rem var(--font-mono);
+  padding: 0.25rem 0.55rem;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 2px;
+  background: rgba(21, 36, 49, 0.7);
+  color: #d6e2e3;
+  cursor: pointer;
+  min-height: 1.75rem;
+  transition:
+    background-color 120ms,
+    border-color 120ms;
+}
+.compare-btn:hover,
+.compare-btn:focus-visible {
+  background: rgba(21, 36, 49, 0.9);
+  border-color: var(--signal);
+}
+.compare-btn--active {
+  background: var(--signal);
+  color: var(--on-signal);
+  border-color: var(--on-signal);
+}
+.compare-btn--active:hover {
+  background: var(--signal-hover);
+}
+
+/* ── Compare tray (sticky bottom bar) ── */
+.compare-tray {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 8;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
+  padding: 0.85rem 0;
+}
+.compare-tray--animate {
+  animation: tray-slide 220ms ease-out;
+}
+@keyframes tray-slide {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.compare-tray-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.compare-tray-items {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.compare-chip {
+  font: 600 0.8rem var(--font-mono);
+  padding: 0.3rem 0.65rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  white-space: nowrap;
+  max-width: 16rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.compare-tray-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex: none;
+}
+.compare-limit {
+  font: 500 0.8rem var(--font-mono);
+  color: var(--signal-text);
+  padding: 0.4rem 0;
+}
+.compare-limit:empty {
+  padding: 0;
+}
+
+/* ── Compare dialog ── */
+.compare-dialog {
+  width: min(72rem, 96vw);
+}
+.compare-dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.compare-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.compare-table {
+  min-width: 100%;
+}
+.compare-table th,
+.compare-table td {
+  white-space: nowrap;
+}
+.compare-table th a {
+  font: 600 1rem var(--font-serif);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+/* ── View toggle pill with sliding highlight ── */
+.view-toggle {
+  display: flex;
+  justify-content: end;
+  gap: 0;
+  margin-bottom: 1rem;
+  position: relative;
+}
+.view-toggle a {
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--control-line);
+  text-transform: capitalize;
+  font-size: 0.875rem;
+  font-weight: 600;
+  position: relative;
+  z-index: 1;
+  color: var(--ink);
+  transition: color 180ms;
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 2.75rem;
+}
+.view-toggle a[aria-current="true"] {
+  background: var(--ink);
+  color: var(--surface);
+}
+.view-toggle a:first-child {
+  border-right: none;
+}
+
+/* ── Living SVG card animations ── */
+/* Oscilloscope / analyser cards */
+.card-scope .instrument-image::after {
+  content: "";
+  position: absolute;
+  bottom: 0.6rem;
+  right: 0.6rem;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--signal);
+  opacity: 0;
+  transition: opacity 200ms;
+}
+.card-scope:is(:hover, :focus-within) .instrument-image::after {
+  opacity: 1;
+  animation: led-pulse-card 1s ease-in-out infinite alternate;
+}
+@keyframes led-pulse-card {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.35;
+  }
+}
+
+/* Dev kit cards — LED blink + subtle lift */
+.card-devkit .instrument-image::after {
+  content: "";
+  position: absolute;
+  bottom: 0.6rem;
+  right: 0.6rem;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--signal);
+  opacity: 0;
+  transition: opacity 200ms;
+}
+.card-devkit:is(:hover, :focus-within) .instrument-image::after {
+  opacity: 1;
+  animation: led-blink-card 0.8s ease-in-out infinite alternate;
+}
+@keyframes led-blink-card {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.3;
+  }
+}
+
+/* Workstation / generic cards — sweep indicator */
+.card-instrument .instrument-image::after {
+  content: "";
+  position: absolute;
+  bottom: 0.6rem;
+  right: 0.6rem;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #26694a;
+  opacity: 0;
+  transition: opacity 200ms;
+}
+.card-instrument:is(:hover, :focus-within) .instrument-image::after {
+  opacity: 0.85;
+  animation: status-sweep 1.2s ease-in-out infinite alternate;
+}
+@keyframes status-sweep {
+  from {
+    opacity: 0.85;
+  }
+  to {
+    opacity: 0.35;
+  }
+}
+
+/* ── Safety-orange accent on card hover ── */
+.equipment-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--signal);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 200ms ease-out;
+}
+.equipment-card:is(:hover, :focus-within)::before {
+  transform: scaleX(1);
+}
+
 @media (max-width: 64rem) {
   .filters {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -233,6 +492,11 @@
   .detail-grid {
     grid-template-columns: 1fr;
   }
+
+  .compare-tray-inner {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 
 @media (max-width: 24rem) {
@@ -242,5 +506,19 @@
 
   .filter-search {
     grid-column: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-scope .instrument-image::after,
+  .card-devkit .instrument-image::after,
+  .card-instrument .instrument-image::after {
+    animation: none;
+  }
+  .compare-tray--animate {
+    animation: none;
+  }
+  .equipment-card::before {
+    transition: none;
   }
 }

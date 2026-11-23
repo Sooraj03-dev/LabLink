@@ -153,6 +153,32 @@
 .bench-bubbles {
   animation: bubble-rise 3.6s ease-in-out infinite;
 }
+/* Hidden by default; visible only on burst click */
+.burst-b {
+  opacity: 0;
+}
+.bench-bubbles--burst .burst-b {
+  animation: bubble-burst 800ms ease-out forwards;
+}
+@keyframes bubble-burst {
+  0% {
+    opacity: 0.8;
+    transform: translateY(0) scale(0.5);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px) scale(1.2);
+  }
+}
+.bench-bubbles--burst .burst-b:nth-child(4) {
+  animation-delay: 0ms;
+}
+.bench-bubbles--burst .burst-b:nth-child(5) {
+  animation-delay: 80ms;
+}
+.bench-bubbles--burst .burst-b:nth-child(6) {
+  animation-delay: 160ms;
+}
 .probe-pulse {
   animation: probe-flow 2s linear infinite;
 }
@@ -240,6 +266,65 @@
 .hero[data-power="on"] .hero-actions {
   animation: settle 0.25s 0.85s backwards;
 }
+/* ── Bench interactivity: hotspots, leader draw-in, dim ── */
+.bench-hotspot {
+  cursor: pointer;
+  outline: none;
+}
+.bench-hotspot:focus-visible {
+  outline: 2px solid #ff9a64;
+  outline-offset: 4px;
+}
+.bench-dim {
+  opacity: 0.45;
+  transition: opacity 200ms ease-out;
+}
+.bench-hotspot--active {
+  opacity: 1;
+}
+
+/* Leader line draw-in */
+.leader-active {
+  stroke: var(--bench-highlight);
+  stroke-width: 1.5;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: leader-draw 400ms ease-out forwards;
+}
+@keyframes leader-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ESP32 LED pulse when toggled on */
+.board-led--on {
+  animation: led-pulse 600ms ease-in-out infinite alternate;
+}
+@keyframes led-pulse {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.3;
+  }
+}
+
+/* Bench tooltip */
+.bench-tooltip {
+  font: 0.75rem/1.4 var(--font-mono);
+  color: #f4f1e8;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.bench-tooltip a {
+  color: var(--signal);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  font-size: 0.7rem;
+}
+
 .section-label,
 .notebook-tab {
   color: var(--ink-muted);
@@ -526,5 +611,30 @@
   }
   .scope-dial .dial-ring {
     r: 15px;
+  }
+}
+/* ── 375px mobile: compact instrument chips ── */
+@media (max-width: 23.4375rem) {
+  .bench-annotations {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+  }
+  .bench-annotations a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--bench-stroke);
+    font-size: 0.78rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .bench-annotations small {
+    margin: 0;
+    white-space: nowrap;
   }
 }

@@ -19,6 +19,12 @@ import { BookingPanel } from "./booking-panel";
 import pilot from "@/lib/booking/pilot.json";
 import { sessionLabel } from "@/lib/booking/rules";
 import { AccountControls } from "./account-controls";
+import { StatsReadout } from "./stats-readout";
+import { SpecimenTag } from "@/components/ui/specimen-tag";
+import { BenchPanel, RuleDivider } from "@/components/ui/bench-panel";
+import { StaggerEntrance } from "@/components/ui/stagger-entrance";
+import { ConfirmationStamp } from "@/components/ui/confirmation-stamp";
+import { InkRipple } from "@/components/ui/ink-ripple";
 
 const labels = {
   draft: "Draft",
@@ -26,6 +32,9 @@ const labels = {
   approved: "Approved",
   rejected: "Rejected",
 };
+
+type StatusFilter = RequestRow["status"];
+
 interface Props {
   name: string;
   role: Role;
@@ -47,11 +56,14 @@ export function Dashboard({
   const [rows, setRows] = useState(initial);
   const [booking, setBooking] = useState<RequestRow | null>(null);
   const [message, setMessage] = useState("");
+  const [stampKey, setStampKey] = useState(0);
   const [busy, setBusy] = useState(false);
-  const [status, setStatus] = useState("all");
+  const [status, setStatus] = useState<"all" | StatusFilter>("all");
   const [error, setError] = useState("");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const formDialog = useRef<HTMLDialogElement>(null);
   const requestId = useRef("");
+
   useEffect(() => {
     function refresh() {
       if (sample) setRows(readSamples());
@@ -74,6 +86,10 @@ export function Dashboard({
       formDialog.current?.showModal();
     }
   }, [resourceId]);
+  function triggerStamp(msg: string) {
+    setMessage(msg);
+    setStampKey((k) => k + 1);
+  }
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
@@ -108,7 +124,7 @@ export function Dashboard({
       setStatus("all");
       formDialog.current?.close();
       form.reset();
-      setMessage(
+      triggerStamp(
         row.status === "draft"
           ? "Draft saved. This sample resource needs a campus reviewer before submission."
           : "Request sent for review.",
@@ -127,7 +143,7 @@ export function Dashboard({
         items.map((row) => (row.id === id ? { ...row, status: outcome } : row));
       const next = sample ? await updateSamples(update) : update(rows);
       setRows(next);
-      setMessage("Request " + outcome + ".");
+      triggerStamp("Request " + outcome + ".");
     } catch {
       setMessage(
         "Could not update the request. Refresh the queue and try again.",
@@ -143,7 +159,7 @@ export function Dashboard({
         setRows((items) =>
           items.map((r) => (r.id === id ? { ...r, status: "submitted" } : r)),
         );
-        setMessage("Request sent for review.");
+        triggerStamp("Request sent for review.");
       } else {
         setMessage("The lab still needs an assigned reviewer.");
       }
@@ -153,11 +169,19 @@ export function Dashboard({
       setBusy(false);
     }
   }
+
+  function toggleExpand(id: string) {
+    setExpandedId((prev) => (prev === id ? null : id));
+  }
+
   const visible = rows.filter((r) =>
     review ? r.status === "submitted" : status === "all" || status === r.status,
   );
+
+  const isExpanded = (id: string) => expandedId === id;
+
   return (
-    <div className="frame inner-page dashboard">
+    <div className="frame inner-page dashboard app-grid-bg">
       <div className="page-heading">
         <p className="section-label">{role} workspace</p>
         <h1>{review ? "Approvals" : "My workspace"}</h1>
@@ -169,9 +193,11 @@ export function Dashboard({
       </div>
       <div className="workspace-toolbar">
         {!review && (
-          <button className="button button-primary" onClick={openForm}>
-            Request equipment
-          </button>
+          <InkRipple>
+            <button className="button button-primary" onClick={openForm}>
+              Request equipment
+            </button>
+          </InkRipple>
         )}
         <Link className="button button-outline" href="/discover">
           Browse catalogue
@@ -188,136 +214,222 @@ export function Dashboard({
           </Link>
         )}
       </div>
-      <dl className="stat-strip">
+      <StaggerEntrance
+        as="dl"
+        className="stat-strip"
+        stagger={60}
+        duration={260}
+      >
         {(["submitted", "approved", "rejected"] as const).map((key) => (
-          <div key={key}>
-            <dt>{labels[key]}</dt>
-            <dd>{rows.filter((r) => r.status === key).length}</dd>
-          </div>
+          <StatsReadout
+            key={key}
+            label={labels[key]}
+            value={rows.filter((r) => r.status === key).length}
+            status={key}
+            filter={
+              review
+                ? undefined
+                : {
+                    active: status === key,
+                    toggle: () =>
+                      setStatus((current) => (current === key ? "all" : key)),
+                  }
+            }
+          />
         ))}
-      </dl>
-      <section className="dash-section">
-        <div className="section-head">
-          <h2>{review ? "Pending requests" : "My equipment requests"}</h2>
-          {!review && (
-            <label>
-              Show{" "}
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-              >
-                <option value="all">All requests</option>
-                {Object.entries(labels).map(([key, label]) => (
-                  <option key={key} value={key}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
-        </div>
-        {visible.length ? (
-          <ul className="request-list">
-            {visible.map((row) => (
-              <li key={row.id}>
-                <div>
-                  <strong>{row.projectTitle}</strong>
-                  <p>
-                    {row.resourceName} · {row.hoursNeeded} hours
-                  </p>
-                </div>
-                <span className="specimen-tag">{labels[row.status]}</span>
-                {!review && !sample && row.status === "draft" && (
-                  <button
-                    className="button button-outline"
-                    disabled={busy}
-                    onClick={() => void sendDraft(row.id)}
+      </StaggerEntrance>
+      <BenchPanel>
+        <section className="dash-section-inner">
+          <div className="section-head">
+            <h2>{review ? "Pending requests" : "My equipment requests"}</h2>
+            {!review && (
+              <label>
+                Show{" "}
+                <select
+                  value={status}
+                  onChange={(e) =>
+                    setStatus(e.target.value as "all" | StatusFilter)
+                  }
+                >
+                  <option value="all">All requests</option>
+                  {Object.entries(labels).map(([key, label]) => (
+                    <option key={key} value={key}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+          </div>
+          {visible.length ? (
+            <StaggerEntrance
+              as="ul"
+              className="request-list"
+              stagger={40}
+              duration={220}
+            >
+              {visible.map((row) => {
+                const resourceId = requestedResourceId(row);
+                return (
+                  <li
+                    key={row.id}
+                    className={
+                      "request-row" +
+                      (isExpanded(row.id) ? " request-row--expanded" : "")
+                    }
                   >
-                    Send for review
-                  </button>
-                )}
-                {!review &&
-                  row.status === "approved" &&
-                  requestedResourceId(row) === pilot.resourceId && (
-                    <>
-                      {row.bookings?.length ? (
-                        <ul aria-label="Reserved lab sessions">
-                          {row.bookings.map((b) => (
-                            <li key={b.unit + b.start}>
-                              Reserved · {sessionLabel(b)}
-                            </li>
-                          ))}
-                        </ul>
-                      ) : null}
-                      {(row.bookings ?? []).reduce(
-                        (sum, r) => sum + r.blocks / 2,
-                        0,
-                      ) < row.hoursNeeded && (
+                    <div className="request-row-main">
+                      <button
+                        type="button"
+                        className="request-row-toggle"
+                        onClick={() => toggleExpand(row.id)}
+                        aria-expanded={isExpanded(row.id)}
+                        aria-controls={"detail-" + row.id}
+                      >
+                        <strong>{row.projectTitle}</strong>
+                        <span>
+                          {row.resourceName} · {row.hoursNeeded} hours
+                        </span>
+                      </button>
+                      <SpecimenTag>{labels[row.status]}</SpecimenTag>
+                      {!review && !sample && row.status === "draft" && (
                         <button
                           className="button button-outline"
-                          onClick={() => setBooking(row)}
+                          disabled={busy}
+                          onClick={() => void sendDraft(row.id)}
                         >
-                          Book lab time
+                          Send for review
                         </button>
                       )}
-                    </>
-                  )}
-                {review && (
-                  <div className="decision-buttons">
-                    <button
-                      disabled={busy}
-                      onClick={() => void decide(row.id, "approved")}
-                      className="button button-outline"
+                      {!review &&
+                        row.status === "approved" &&
+                        resourceId === pilot.resourceId && (
+                          <>
+                            {row.bookings?.length ? (
+                              <ul aria-label="Reserved lab sessions">
+                                {row.bookings.map((b) => (
+                                  <li key={b.unit + b.start}>
+                                    Reserved · {sessionLabel(b)}
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : null}
+                            {(row.bookings ?? []).reduce(
+                              (sum, r) => sum + r.blocks / 2,
+                              0,
+                            ) < row.hoursNeeded && (
+                              <button
+                                className="button button-outline"
+                                onClick={() => setBooking(row)}
+                              >
+                                Book lab time
+                              </button>
+                            )}
+                          </>
+                        )}
+                      {review && (
+                        <div className="decision-buttons">
+                          <button
+                            disabled={busy}
+                            onClick={() => void decide(row.id, "approved")}
+                            className="button button-outline"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            disabled={busy}
+                            onClick={() => void decide(row.id, "rejected")}
+                            className="text-link"
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    {/* Expandable detail panel */}
+                    <div
+                      id={"detail-" + row.id}
+                      className="request-detail"
+                      data-open={isExpanded(row.id) ? "true" : undefined}
+                      inert={!isExpanded(row.id)}
                     >
-                      Approve
-                    </button>
-                    <button
-                      disabled={busy}
-                      onClick={() => void decide(row.id, "rejected")}
-                      className="text-link"
-                    >
-                      Reject
-                    </button>
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="empty-state">
-            {review
-              ? "Your review queue is clear."
-              : "There are no matching requests yet."}
-          </p>
-        )}
-      </section>
+                      <RuleDivider />
+                      <div className="detail-content">
+                        <dl className="detail-specs">
+                          <div>
+                            <dt>Resource</dt>
+                            <dd>{row.resourceName}</dd>
+                          </div>
+                          <div>
+                            <dt>Hours requested</dt>
+                            <dd>{row.hoursNeeded}</dd>
+                          </div>
+                          <div>
+                            <dt>Status</dt>
+                            <dd>{labels[row.status]}</dd>
+                          </div>
+                        </dl>
+                        <div className="detail-actions">
+                          {resourceId && (
+                            <Link
+                              className="text-link"
+                              href={"/resources/" + resourceId}
+                            >
+                              View instrument
+                            </Link>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </StaggerEntrance>
+          ) : (
+            <p className="empty-state">
+              {review
+                ? "Your review queue is clear."
+                : "There are no matching requests yet."}
+            </p>
+          )}
+        </section>
+      </BenchPanel>
       {!review && (
         <div className="detail-grid">
-          <section className="dash-section">
-            <h2>Project workspace</h2>
-            {rows.length ? (
-              <ul>
-                {[...new Set(rows.map((r) => r.projectTitle))].map((title) => (
-                  <li key={title}>
-                    {title} ·{" "}
-                    {rows.filter((r) => r.projectTitle === title).length}{" "}
-                    request(s)
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>Start an equipment request to add a project here.</p>
-            )}
-          </section>
+          <BenchPanel>
+            <section className="dash-section-inner">
+              <h2>Project workspace</h2>
+              {rows.length ? (
+                <ul>
+                  {[...new Set(rows.map((r) => r.projectTitle))].map(
+                    (title) => (
+                      <li key={title}>
+                        {title} ·{" "}
+                        {rows.filter((r) => r.projectTitle === title).length}{" "}
+                        request(s)
+                      </li>
+                    ),
+                  )}
+                </ul>
+              ) : (
+                <p>Start an equipment request to add a project here.</p>
+              )}
+            </section>
+          </BenchPanel>
           <RecentViews />
         </div>
       )}
-      <p role="status" className={message ? "status-notice" : ""}>
+      <p
+        role="status"
+        aria-live="polite"
+        className={message ? "status-notice" : ""}
+      >
         {message && (
           <>
-            {!message.startsWith("Could not") && (
-              <b className="logged">Logged </b>
-            )}{" "}
+            {!message.startsWith("Could not") &&
+              !message.startsWith("The lab") && (
+                <ConfirmationStamp key={stampKey} />
+              )}{" "}
             {message}
           </>
         )}
@@ -331,7 +443,7 @@ export function Dashboard({
             setRows((items) =>
               items.map((r) => (r.id === booking.id ? { ...r, bookings } : r)),
             );
-            setMessage("Lab session reserved.");
+            triggerStamp("Lab session reserved.");
             setBooking(null);
           }}
         />

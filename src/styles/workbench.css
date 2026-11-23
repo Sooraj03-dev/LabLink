@@ -92,6 +92,7 @@
   scroll-margin-top: 6rem;
 }
 .equipment-card {
+  position: relative;
   height: 100%;
   border: 1px solid var(--line);
   background: var(--surface);
@@ -175,13 +176,26 @@
   background: var(--signal);
   border-color: var(--signal-text);
 }
-.equipment-card:is(:hover, :focus-within) .specimen-tag {
-  animation: tag-swing 220ms ease-out;
-  transform-origin: 0.55rem center;
+.equipment-card:is(:hover, :focus-within) .specimen-tag[data-animate] {
+  animation: tag-pendulum 450ms ease-out;
+  transform-origin: 0.6rem center;
 }
-@keyframes tag-swing {
+.request-row:is(:hover, :focus-within) .specimen-tag[data-animate] {
+  animation: tag-pendulum 450ms ease-out;
+  transform-origin: 0.6rem center;
+}
+@keyframes tag-pendulum {
+  15% {
+    transform: rotate(-4deg);
+  }
   40% {
     transform: rotate(3deg);
+  }
+  65% {
+    transform: rotate(-1deg);
+  }
+  100% {
+    transform: rotate(0);
   }
 }
 .filters {
@@ -194,21 +208,7 @@
 .filters select:focus-visible {
   background: var(--surface);
 }
-.view-options {
-  justify-content: end;
-  gap: 0;
-  margin-bottom: 1rem;
-}
-.view-options a {
-  padding: 0.4rem 0.85rem;
-  border: 1px solid var(--control-line);
-  text-transform: capitalize;
-  font-size: 0.875rem;
-}
-.view-options a[aria-current="true"] {
-  background: var(--ink);
-  color: var(--surface);
-}
+
 .catalogue-results {
   animation: results-in 150ms ease-out;
 }
@@ -300,6 +300,122 @@ dialog[open] {
 .dashboard .stat-strip {
   margin-block: 2rem;
 }
+
+/* ── Clickable stat cards ── */
+.stat-card {
+  cursor: pointer;
+  background: none;
+  text-align: start;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  min-height: 1.75rem;
+}
+.stat-strip > div:has(.stat-card) {
+  position: relative;
+  transition: border-color 160ms;
+}
+.stat-strip > div:has(.stat-card)::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 12px 12px 0;
+  border-color: transparent transparent transparent transparent;
+  transition: border-color 160ms;
+}
+.stat-strip > .stat-card--active,
+.stat-strip > div:has(.stat-card:is(:hover, :focus-visible)) {
+  border-left-color: var(--signal);
+}
+.stat-strip > .stat-card--active:has(.stat-card)::after {
+  border-color: transparent var(--signal) transparent transparent;
+}
+.stat-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-right: 0.35rem;
+  vertical-align: middle;
+}
+
+/* ── Expandable request rows ── */
+.request-row-main {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+}
+.request-row-toggle {
+  flex: 1 1 12rem;
+  background: none;
+  border: none;
+  text-align: start;
+  cursor: pointer;
+  padding: 0;
+  color: var(--ink);
+  font: inherit;
+}
+.request-row-toggle:hover strong {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+.request-row-toggle > span {
+  display: block;
+}
+.request-detail {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 220ms ease-out,
+    opacity 180ms ease-out;
+  overflow: hidden;
+}
+.request-detail[data-open="true"] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+.request-detail > .rule-divider {
+  margin-top: 0.75rem;
+}
+.detail-content {
+  min-height: 0;
+  overflow: hidden;
+  padding-top: 0.75rem;
+}
+.detail-specs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 2rem;
+  margin-bottom: 0.75rem;
+}
+.detail-specs dt {
+  font-size: 0.8rem;
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+}
+.detail-specs dd {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.detail-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+/* ── Dashboard inner sections (inside BenchPanel) ── */
+.dash-section-inner {
+  padding: clamp(1.2rem, 2.7vw, 2.2rem);
+}
+.dash-section-inner h2 {
+  font-size: clamp(1.55rem, 3.2vw, 2.4rem);
+  margin-bottom: 0.7rem;
+}
 .dashboard .section-label,
 .login-grid .section-label {
   text-transform: capitalize;
@@ -317,15 +433,8 @@ dialog[open] {
   margin-bottom: 0.7rem;
 }
 .request-list li {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.75rem 1.5rem;
   border-top: 1px solid var(--line);
-  padding: 1rem 0;
-}
-.request-list li > div:first-child {
-  flex: 1 1 12rem;
+  padding: 1rem 0 1rem 0.5rem;
 }
 .status-notice {
   border-left: 3px solid var(--signal);
@@ -335,11 +444,19 @@ dialog[open] {
 .logged {
   display: inline-block;
   font: 600 0.85rem var(--font-mono);
-  animation: stamp 180ms ease-out;
+  color: #26694a;
+}
+.logged--animate {
+  animation: stamp 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 @keyframes stamp {
   from {
-    transform: scale(1.4) rotate(-2deg);
+    transform: scale(1.6) rotate(-3deg);
+    opacity: 0.3;
+  }
+  to {
+    transform: scale(1) rotate(0);
+    opacity: 1;
   }
 }
 .login-grid {

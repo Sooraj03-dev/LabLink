@@ -1,7 +1,49 @@
+"use client";
 import { ScopeControls, BenchPlayback } from "./scope-controls";
 import Link from "next/link";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { inventory } from "@/lib/inventory";
+import { useMotionPreference } from "@/components/ui/motion-preference";
+
+type Hotspot = "scope" | "esp32" | "beaker" | null;
+
+function useBenchHotspots() {
+  const [active, setActive] = useState<Hotspot>(null);
+  const reduced = useMotionPreference();
+  const [ledOn, setLedOn] = useState(false);
+  const [bubbling, setBubbling] = useState(false);
+  const bubbleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const toggleESP = useCallback(() => {
+    setActive((prev) => (prev === "esp32" ? null : "esp32"));
+    setLedOn((v) => !v);
+  }, []);
+
+  const triggerBubbles = useCallback(() => {
+    setActive((prev) => (prev === "beaker" ? null : "beaker"));
+    if (!reduced) {
+      setBubbling(true);
+      if (bubbleTimer.current) clearTimeout(bubbleTimer.current);
+      bubbleTimer.current = setTimeout(() => setBubbling(false), 800);
+    }
+  }, [reduced]);
+
+  useEffect(() => {
+    return () => {
+      if (bubbleTimer.current) clearTimeout(bubbleTimer.current);
+    };
+  }, []);
+
+  return { active, setActive, ledOn, bubbling, toggleESP, triggerBubbles };
+}
+
 export function LabBench() {
+  const { active, setActive, ledOn, bubbling, toggleESP, triggerBubbles } =
+    useBenchHotspots();
+
+  const dimClass = (target: Hotspot) =>
+    active && active !== target ? " bench-dim" : "";
+
   return (
     <figure className="lab-bench">
       <div className="bench-drawing">
@@ -40,7 +82,9 @@ export function LabBench() {
             fill="var(--bench-shadow)"
           />
 
+          {/* Oscilloscope body */}
           <g
+            className={"scope-group" + dimClass("scope")}
             stroke="var(--bench-stroke)"
             strokeWidth="2"
             strokeLinejoin="round"
@@ -121,6 +165,7 @@ export function LabBench() {
             />
           </g>
 
+          {/* Probe wire */}
           <path
             d="M374 270c22 6 40 21 39 45-2 26-50 33-101 21"
             fill="none"
@@ -137,10 +182,35 @@ export function LabBench() {
             strokeWidth="3"
             strokeDasharray="4 100"
           />
+
+          {/* ESP32 board — interactive */}
           <g
+            className={
+              "esp32-group bench-hotspot" +
+              dimClass("esp32") +
+              (active === "esp32" ? " bench-hotspot--active" : "")
+            }
             transform="translate(164 288) rotate(-7 75 34)"
             stroke="var(--bench-stroke)"
             strokeWidth="1.5"
+            role="button"
+            tabIndex={0}
+            aria-label="ESP32 prototyping kit — click to toggle status LED"
+            onClick={toggleESP}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                toggleESP();
+              }
+            }}
+            onMouseEnter={() => setActive("esp32")}
+            onMouseLeave={() => {
+              if (active === "esp32") setActive(null);
+            }}
+            onFocus={() => setActive("esp32")}
+            onBlur={() => {
+              if (active === "esp32") setActive(null);
+            }}
           >
             <rect
               x="5"
@@ -179,7 +249,7 @@ export function LabBench() {
               fill="var(--bench-instrument)"
             />
             <circle
-              className="board-led"
+              className={"board-led" + (ledOn ? " board-led--on" : "")}
               cx="111"
               cy="33"
               r="3"
@@ -188,7 +258,33 @@ export function LabBench() {
             />
           </g>
 
-          <g transform="translate(476 142)">
+          {/* Beaker — interactive */}
+          <g
+            className={
+              "beaker-group bench-hotspot" +
+              dimClass("beaker") +
+              (active === "beaker" ? " bench-hotspot--active" : "")
+            }
+            transform="translate(476 142)"
+            role="button"
+            tabIndex={0}
+            aria-label="Visible-light spectrometer beaker — click for bubble burst"
+            onClick={triggerBubbles}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                triggerBubbles();
+              }
+            }}
+            onMouseEnter={() => setActive("beaker")}
+            onMouseLeave={() => {
+              if (active === "beaker") setActive(null);
+            }}
+            onFocus={() => setActive("beaker")}
+            onBlur={() => {
+              if (active === "beaker") setActive(null);
+            }}
+          >
             <path
               d="M1 0h91l-12 17v130a17 17 0 0 1-17 17H19a17 17 0 0 1-17-17V13L-7 0Z"
               fill="var(--bench-instrument)"
@@ -217,7 +313,9 @@ export function LabBench() {
               strokeLinecap="round"
             />
             <g
-              className="bench-bubbles"
+              className={
+                "bench-bubbles" + (bubbling ? " bench-bubbles--burst" : "")
+              }
               fill="none"
               stroke="var(--bench-highlight)"
               opacity=".7"
@@ -225,9 +323,16 @@ export function LabBench() {
               <circle cx="42" cy="118" r="4" />
               <circle cx="54" cy="104" r="3" />
               <circle cx="55" cy="134" r="5" />
+              {/* Extra burst bubbles */}
+              <circle className="burst-b" cx="38" cy="126" r="2.5" />
+              <circle className="burst-b" cx="60" cy="114" r="2" />
+              <circle className="burst-b" cx="48" cy="98" r="3" />
             </g>
           </g>
+
+          {/* Spectrometer */}
           <g
+            className={"spectrometer-group" + dimClass("beaker")}
             transform="translate(445 282)"
             stroke="var(--bench-stroke)"
             strokeWidth="1.5"
@@ -239,29 +344,69 @@ export function LabBench() {
             <circle cx="17" cy="26" r="5" fill="var(--bench-shadow)" />
             <path d="M32 24h29m-29 4h22" />
           </g>
+
+          {/* Leader lines with pathLength for draw-in */}
           <g
-            className="leaders"
+            className={"leaders" + (active ? " leaders--highlight" : "")}
             aria-hidden="true"
             fill="none"
             stroke="var(--bench-stroke)"
           >
-            <path d="M153 108l-24-40H62 M277 313l-32 56h-83 M497 306l36 39h57" />
+            <path
+              className={active === "scope" ? "leader-active" : ""}
+              d="M153 108l-24-40H62"
+              pathLength="100"
+            />
+            <path
+              className={active === "esp32" ? "leader-active" : ""}
+              d="M277 313l-32 56h-83"
+              pathLength="100"
+            />
+            <path
+              className={active === "beaker" ? "leader-active" : ""}
+              d="M497 306l36 39h57"
+              pathLength="100"
+            />
             <g fill="var(--bench-highlight)">
               <circle cx="153" cy="108" r="3" />
               <circle cx="277" cy="313" r="3" />
               <circle cx="497" cy="306" r="3" />
             </g>
           </g>
+
+          {/* ESP32 tooltip */}
+          {active === "esp32" && (
+            <foreignObject x="60" y="358" width="200" height="60">
+              <div className="bench-tooltip">
+                <span>
+                  {inventory("esp32-prototyping-kit").free} free · LED{" "}
+                  {ledOn ? "ON" : "OFF"}
+                </span>
+                <a href="/discover?q=ESP32">View in catalogue →</a>
+              </div>
+            </foreignObject>
+          )}
         </svg>
-        <div className="bench-annotations">
+        <div
+          className={
+            "bench-annotations" + (active ? " bench-annotations--hotspot" : "")
+          }
+        >
           {[
-            ["mixed-signal-oscilloscope", "Mixed-signal oscilloscope"],
-            ["esp32-prototyping-kit", "ESP32 prototyping kit"],
-            ["optical-spectrometer", "Visible-light spectrometer"],
+            ["mixed-signal-oscilloscope", "Mixed-signal oscilloscope", "scope"],
+            ["esp32-prototyping-kit", "ESP32 prototyping kit", "esp32"],
+            ["optical-spectrometer", "Visible-light spectrometer", "beaker"],
           ].map(
-            ([id, name]) =>
+            ([id, name, hotspot]) =>
               id && (
-                <Link prefetch={false} key={id} href={"/resources/" + id}>
+                <Link
+                  prefetch={false}
+                  key={id}
+                  href={"/resources/" + id}
+                  className={active === hotspot ? "annotation--active" : ""}
+                  onMouseEnter={() => setActive(hotspot as Hotspot)}
+                  onMouseLeave={() => setActive(null)}
+                >
                   {name}
                   <small>{inventory(id).free} free · sample</small>
                 </Link>

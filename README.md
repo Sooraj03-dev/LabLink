@@ -13,6 +13,16 @@ pnpm dev
 
 Open [localhost:3000](http://localhost:3000). The catalogue lives at `/discover`. Filters are reflected in the URL, so searches can be bookmarked and shared.
 
+## Key Interface Features
+
+- **Laboratory Instrument Panel Aesthetic**: Precision 24px/120px graph-paper grid background, Fraunces serif display, Public Sans body, and JetBrains Mono monospace readouts.
+- **Hero Lab Bench Interactivity (`/`)**: Interactive SVG oscilloscope with real-time waveform/amplitude knob controls, ESP32 prototyping kit hotspot with LED toggling and quick-spec popover, and reactive chemical beaker bubbles.
+- **Living SVG Hardware Cards (`/discover`)**: Equipment cards with hardware-specific status LED pulses, sweep indicators, 1px registration marks, and subtle hover lifts.
+- The catalogue shows a sample week of availability with hatched maintenance blocks and labels for screen readers. The pilot instrument page shows current booking availability.
+- **Interactive Compare Tray**: Compare up to 3 instruments side-by-side with sticky drawer and full accessible specification comparison modal.
+- **Workspace Readouts & Expandable Rows (`/workspace`)**: Count-up instrument readouts with filter capabilities, swinging specimen tags, and expandable request rows with inline specs and actions.
+- The interface respects `prefers-reduced-motion`.
+
 ## Verify
 
 ```sh

@@ -1,12 +1,25 @@
 "use client";
 import { useRef, useEffect } from "react";
 import { useMotionPreference } from "@/components/ui/motion-preference";
+
+type StatusFilter = "submitted" | "approved" | "rejected";
+
+const statusColors: Record<StatusFilter, string> = {
+  submitted: "var(--signal)",
+  approved: "#26694A",
+  rejected: "#a53706",
+};
+
 export function StatsReadout({
   label,
   value,
+  status,
+  filter,
 }: {
   label: string;
   value: number;
+  status?: StatusFilter;
+  filter?: { active: boolean; toggle: () => void };
 }) {
   const ref = useRef<HTMLSpanElement>(null),
     reduced = useMotionPreference();
@@ -32,9 +45,35 @@ export function StatsReadout({
       el.textContent = String(value);
     };
   }, [value, reduced]);
+
+  const labelContent = (
+    <>
+      {status && (
+        <span
+          className="stat-dot"
+          style={{ background: statusColors[status] }}
+          aria-hidden="true"
+        />
+      )}
+      {label}
+    </>
+  );
   return (
-    <div>
-      <dt>{label}</dt>
+    <div className={filter?.active ? "stat-card--active" : undefined}>
+      <dt>
+        {filter ? (
+          <button
+            type="button"
+            className="stat-card"
+            aria-pressed={filter.active}
+            onClick={filter.toggle}
+          >
+            {labelContent}
+          </button>
+        ) : (
+          labelContent
+        )}
+      </dt>
       <dd>
         <span aria-hidden="true" ref={ref}>
           {value}

@@ -72,6 +72,16 @@ test("three direct logins keep sample activity in the same browser", async ({
   await expect(page.locator(".request-list li")).toContainText(
     "Sensor calibration run",
   );
+  const rowToggle = page.getByRole("button", {
+    name: /Sensor calibration run/,
+  });
+  await rowToggle.press("Enter");
+  await expect(rowToggle).toHaveAttribute("aria-expanded", "true");
+  await expect(
+    page.getByRole("link", { name: "View instrument" }),
+  ).toBeVisible();
+  await rowToggle.press("Space");
+  await expect(rowToggle).toHaveAttribute("aria-expanded", "false");
   await page.getByRole("button", { name: "Book lab time" }).click();
   const reservation = page.getByRole("dialog", { name: "Reserve lab time" });
   await expect(
@@ -107,6 +117,26 @@ test("catalogue search, filters and layout survive navigation", async ({
   page,
 }) => {
   await page.goto("/discover");
+  const compare = page.getByRole("region", { name: "Compare bench" });
+  const buttons = page.getByRole("button", { name: /^Compare / });
+  for (const index of [0, 1, 2]) await buttons.nth(index).click();
+  await page
+    .getByRole("button", { name: "Compare FDM 3D printer", exact: true })
+    .click();
+  await expect(compare.getByRole("status")).toHaveText(
+    "Compare up to 3 resources.",
+  );
+  await compare.getByRole("button", { name: "Compare specs" }).click();
+  const comparison = page.getByRole("dialog", {
+    name: "Specification comparison",
+  });
+  await expect(comparison.getByRole("columnheader")).toHaveCount(4);
+  await page.keyboard.press("Escape");
+  await expect(comparison).toBeHidden();
+  await expect(
+    compare.getByRole("button", { name: "Compare specs" }),
+  ).toBeFocused();
+  await compare.getByRole("button", { name: "Clear", exact: true }).click();
   await page
     .getByRole("searchbox", { name: "Search", exact: true })
     .fill("ESP32");
