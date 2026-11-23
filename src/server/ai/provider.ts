@@ -14,6 +14,11 @@ export interface LLMProvider {
   select(
     input: AssistantInput,
     candidates: readonly Resource[],
+    pilotCalendar?: {
+      resourceId: string;
+      timeZone: string;
+      nextFreeHalfHour: string | null;
+    },
   ): Promise<Selection>;
 }
 export const previewProvider: LLMProvider = {
@@ -27,6 +32,7 @@ const systemInstruction = [
   "Choose only supplied candidate IDs relevant to the described work. Return an empty matches array if none fit.",
   "Use only recorded specifications. For each match give the zero-based index of its most relevant specification.",
   "For plans, suggest rough hours per item. For other modes use 1. Never infer future availability, approvals, or bookings.",
+  "Use the pilot calendar's next free half hour for time-sensitive selections when present. A null time means this instrument has no free half hour in the 14-day window. Sample unit counts do not confirm a time slot.",
   "Use type and department filters only when the user requests them. Otherwise use any. For comparisons assess suitability for the requested task against the reference.",
 ].join(" ");
 const shape = {
@@ -55,7 +61,7 @@ const shape = {
 };
 
 export const geminiProvider: LLMProvider = {
-  async select(input, candidates) {
+  async select(input, candidates, pilotCalendar) {
     const key = process.env.GEMINI_API_KEY;
     if (!key) throw new Error("Gemini is not configured");
     const model = z
@@ -74,6 +80,7 @@ export const geminiProvider: LLMProvider = {
         "[email omitted]",
       ),
       deadline: input.deadline,
+      pilotCalendar,
       reference: reference && { name: reference.name, specs: reference.specs },
       candidates: candidates.map((item) => ({
         id: item.id,

@@ -10,6 +10,9 @@ import { sameOrigin, withinLimit } from "@/server/auth-request";
 import { currentUser } from "@/server/session";
 import { geminiProvider, previewProvider } from "@/server/ai/provider";
 import { reserveDailyCall } from "@/server/ai/usage";
+import pilot from "@/lib/booking/pilot.json";
+import { nextSession } from "@/lib/booking/rules";
+import { availability } from "@/server/booking";
 
 const cache = new Map<string, { expires: number; result: AssistantResult }>();
 const json = (body: unknown, status = 200) =>
@@ -74,8 +77,20 @@ export async function POST(request: Request) {
   }
   if (process.env.GENAI_PROVIDER !== "gemini" || !process.env.GEMINI_API_KEY)
     return fallback("Gemini is unavailable. Showing catalogue matches.");
+  const board = candidates.some((item) => item.id === pilot.resourceId)
+    ? await availability(pilot.resourceId).catch(() => null)
+    : null;
+  let pilotCalendar;
+  if (board?.schedule && board.source !== "browser") {
+    const first = nextSession(board);
+    pilotCalendar = {
+      resourceId: pilot.resourceId,
+      timeZone: board.schedule.timeZone,
+      nextFreeHalfHour: first ? new Date(first.start).toISOString() : null,
+    };
+  }
   const key = createHash("sha256")
-    .update(JSON.stringify([process.env.GENAI_MODEL, input]))
+    .update(JSON.stringify([process.env.GENAI_MODEL, input, pilotCalendar]))
     .digest("hex");
   const hit = cache.get(key);
   if (hit && hit.expires > Date.now()) return json(hit.result);
@@ -92,7 +107,7 @@ export async function POST(request: Request) {
       notice: "Selected by Gemini from the sample catalogue.",
       matches: groundSelection(
         input,
-        await geminiProvider.select(input, candidates),
+        await geminiProvider.select(input, candidates, pilotCalendar),
         candidates,
       ),
     };

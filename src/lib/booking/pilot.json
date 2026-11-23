@@ -1,0 +1,10 @@
+{
+  "resourceId": "mixed-signal-oscilloscope",
+  "model": "RIGOL MSO5204",
+  "lab": "Circuits & Instrumentation Lab",
+  "units": ["scope-01"],
+  "weekdays": [1, 2, 3, 4, 5],
+  "openMinute": 540,
+  "closeMinute": 1020,
+  "timeZone": "Asia/Kolkata"
+}

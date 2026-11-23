@@ -1,4 +1,6 @@
 "use client";
+import { NextSession } from "./booking-panel";
+import pilot from "@/lib/booking/pilot.json";
 import Link from "next/link";
 import { useRef, useState, type FormEvent } from "react";
 import type { AssistantMode, AssistantResult } from "@/lib/assistant";
@@ -194,6 +196,7 @@ export function AssistantNotebook({
                         ? " · Estimated lab time: " + item.hours + " h"
                         : ""}
                     </p>
+                    {item.id === pilot.resourceId && <NextSession compact />}
                     <Link
                       className="text-link"
                       href={"/workspace?resource=" + item.id}
@@ -210,8 +213,8 @@ export function AssistantNotebook({
               </p>
             )}
             <p className="muted">
-              Availability is a sample inventory count. Confirm compatibility
-              and time slots with the lab.
+              Unit counts describe the sample catalogue. The pilot instrument
+              also shows its next free session from the booking calendar.
             </p>
           </>
         )}

@@ -1,3 +1,5 @@
+import { NextSession } from "@/components/features/booking-panel";
+import pilot from "@/lib/booking/pilot.json";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ResourceGallery } from "@/components/features/resource-gallery";
@@ -103,6 +105,7 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
         </BenchPanel>
       </div>
 
+      {id === pilot.resourceId && <NextSession />}
       {related.length > 0 && (
         <section className="related" aria-labelledby="related-heading">
           <h2 id="related-heading">More in this category</h2>

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { reservation } from "./booking/rules";
 import { sampleResources } from "./catalogue";
 
 export const requestInput = z.object({
@@ -12,6 +13,8 @@ export const requestRow = z.object({
   id: z.string(),
   projectTitle: z.string(),
   resourceName: z.string(),
+  resourceId: z.string().optional(),
+  bookings: z.array(reservation).optional(),
   hoursNeeded: z.number(),
   status: z.enum(["draft", "submitted", "approved", "rejected"]),
 });
@@ -32,3 +35,13 @@ export const sampleRequests: RequestRow[] = [
     status: "submitted",
   },
 ];
+
+export function requestedResourceId(row: {
+  resourceId?: string;
+  resourceName: string;
+}) {
+  return (
+    row.resourceId ??
+    sampleResources.find((item) => item.name === row.resourceName)?.id
+  );
+}

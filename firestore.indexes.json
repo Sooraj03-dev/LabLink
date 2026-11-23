@@ -11,6 +11,12 @@
   ],
   "fieldOverrides": [
     {
+      "collectionGroup": "bookingSlots",
+      "fieldPath": "expiresAt",
+      "ttl": true,
+      "indexes": []
+    },
+    {
       "collectionGroup": "aiUsage",
       "fieldPath": "expiresAt",
       "ttl": true,

@@ -5,12 +5,19 @@ import type { Role } from "@/lib/auth";
 import { sampleResources } from "@/lib/catalogue";
 import {
   requestInput,
-  requestRow,
-  sampleRequests,
+  requestedResourceId,
   type RequestRow,
 } from "@/lib/requests";
-import { saveRequest, reviewRequest } from "@/app/workspace/actions";
+import {
+  saveRequest,
+  reviewRequest,
+  submitDraft,
+} from "@/app/workspace/actions";
 import { RecentViews } from "./recent-views";
+import { readSamples, updateSamples } from "@/lib/booking/sample";
+import { BookingPanel } from "./booking-panel";
+import pilot from "@/lib/booking/pilot.json";
+import { sessionLabel } from "@/lib/booking/rules";
 import { AccountControls } from "./account-controls";
 
 const labels = {
@@ -19,16 +26,6 @@ const labels = {
   approved: "Approved",
   rejected: "Rejected",
 };
-const storageKey = "lablink.sample.requests.v1";
-function readSamples() {
-  try {
-    const value = localStorage.getItem(storageKey);
-    return value ? requestRow.array().parse(JSON.parse(value)) : sampleRequests;
-  } catch {
-    return sampleRequests;
-  }
-}
-
 interface Props {
   name: string;
   role: Role;
@@ -48,6 +45,7 @@ export function Dashboard({
   review = false,
 }: Props) {
   const [rows, setRows] = useState(initial);
+  const [booking, setBooking] = useState<RequestRow | null>(null);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("all");
@@ -96,15 +94,16 @@ export function Dashboard({
             id: requestId.current,
             projectTitle: data.data.projectTitle,
             resourceName: item.name,
+            resourceId: item.id,
             hoursNeeded: data.data.hoursNeeded,
             status: "submitted",
           }
         : await saveRequest(data.data, requestId.current);
-      const next = [
+      const append = (items: RequestRow[]) => [
         row,
-        ...(sample ? readSamples() : rows).filter((x) => x.id !== row.id),
+        ...items.filter((x) => x.id !== row.id),
       ];
-      if (sample) localStorage.setItem(storageKey, JSON.stringify(next));
+      const next = sample ? await updateSamples(append) : append(rows);
       setRows(next);
       setStatus("all");
       formDialog.current?.close();
@@ -124,16 +123,32 @@ export function Dashboard({
     setBusy(true);
     try {
       if (!sample) await reviewRequest(id, outcome);
-      const next = (sample ? readSamples() : rows).map((row) =>
-        row.id === id ? { ...row, status: outcome } : row,
-      );
-      if (sample) localStorage.setItem(storageKey, JSON.stringify(next));
+      const update = (items: RequestRow[]) =>
+        items.map((row) => (row.id === id ? { ...row, status: outcome } : row));
+      const next = sample ? await updateSamples(update) : update(rows);
       setRows(next);
       setMessage("Request " + outcome + ".");
     } catch {
       setMessage(
         "Could not update the request. Refresh the queue and try again.",
       );
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function sendDraft(id: string) {
+    setBusy(true);
+    try {
+      if (await submitDraft(id)) {
+        setRows((items) =>
+          items.map((r) => (r.id === id ? { ...r, status: "submitted" } : r)),
+        );
+        setMessage("Request sent for review.");
+      } else {
+        setMessage("The lab still needs an assigned reviewer.");
+      }
+    } catch {
+      setMessage("Could not submit this draft.");
     } finally {
       setBusy(false);
     }
@@ -212,6 +227,41 @@ export function Dashboard({
                   </p>
                 </div>
                 <span className="specimen-tag">{labels[row.status]}</span>
+                {!review && !sample && row.status === "draft" && (
+                  <button
+                    className="button button-outline"
+                    disabled={busy}
+                    onClick={() => void sendDraft(row.id)}
+                  >
+                    Send for review
+                  </button>
+                )}
+                {!review &&
+                  row.status === "approved" &&
+                  requestedResourceId(row) === pilot.resourceId && (
+                    <>
+                      {row.bookings?.length ? (
+                        <ul aria-label="Reserved lab sessions">
+                          {row.bookings.map((b) => (
+                            <li key={b.unit + b.start}>
+                              Reserved · {sessionLabel(b)}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : null}
+                      {(row.bookings ?? []).reduce(
+                        (sum, r) => sum + r.blocks / 2,
+                        0,
+                      ) < row.hoursNeeded && (
+                        <button
+                          className="button button-outline"
+                          onClick={() => setBooking(row)}
+                        >
+                          Book lab time
+                        </button>
+                      )}
+                    </>
+                  )}
                 {review && (
                   <div className="decision-buttons">
                     <button
@@ -272,6 +322,20 @@ export function Dashboard({
           </>
         )}
       </p>
+      {booking && (
+        <BookingPanel
+          request={booking}
+          sample={sample}
+          onClose={() => setBooking(null)}
+          onBooked={(bookings) => {
+            setRows((items) =>
+              items.map((r) => (r.id === booking.id ? { ...r, bookings } : r)),
+            );
+            setMessage("Lab session reserved.");
+            setBooking(null);
+          }}
+        />
+      )}
       <AccountControls demo={sample || emulator} />
       <dialog
         ref={formDialog}

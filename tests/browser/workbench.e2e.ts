@@ -16,6 +16,9 @@ test("three direct logins keep sample activity in the same browser", async ({
   await page.goto("/approvals");
   await expect(page).toHaveURL(/\/workspace$/);
   await page.goto("/resources/mixed-signal-oscilloscope");
+  const nextFree = page.getByText(/^Next free half hour/);
+  await expect(nextFree).toBeVisible();
+  const beforeBooking = await nextFree.innerText();
   await page.getByRole("button", { name: "Detail", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Detail", exact: true }),
@@ -57,9 +60,35 @@ test("three direct logins keep sample activity in the same browser", async ({
   await expect(page.locator(".request-list li")).toContainText(
     "Sensor calibration run",
   );
+  await page.getByRole("button", { name: "Book lab time" }).click();
+  const reservation = page.getByRole("dialog", { name: "Reserve lab time" });
+  await expect(
+    reservation.getByRole("button", { name: "Confirm reservation" }),
+  ).toBeDisabled();
+  await reservation
+    .getByLabel("Start time (India Standard Time)")
+    .selectOption({ index: 1 });
+  await reservation
+    .getByRole("button", { name: "Confirm reservation" })
+    .click();
+  await expect(page.getByRole("status")).toContainText("Lab session reserved");
+  await page.reload();
+  await expect(page.getByLabel("Reserved lab sessions")).toContainText(
+    "scope-01",
+  );
   await expect(
     page.getByRole("heading", { name: "Recently viewed" }).locator(".."),
   ).toContainText("Mixed-signal oscilloscope");
+  await page.goto("/resources/mixed-signal-oscilloscope");
+  await expect(nextFree).toBeVisible();
+  await expect(nextFree).not.toHaveText(beforeBooking);
+  const afterBooking = await nextFree.innerText();
+  await page.goto("/assistant");
+  await page.getByRole("textbox").fill("Mixed-signal oscilloscope");
+  await page.getByRole("button", { name: "Find matches" }).click();
+  await expect(page.getByText(/^Next free half hour/)).toContainText(
+    afterBooking,
+  );
 });
 
 test("catalogue search, filters and layout survive navigation", async ({
