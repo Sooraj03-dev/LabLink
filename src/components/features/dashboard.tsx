@@ -6,6 +6,8 @@ import { sampleResources } from "@/lib/catalogue";
 import {
   requestInput,
   requestedResourceId,
+  resolveReview,
+  type ReviewDecision,
   type RequestRow,
 } from "@/lib/requests";
 import {
@@ -17,7 +19,7 @@ import { RecentViews } from "./recent-views";
 import { readSamples, updateSamples } from "@/lib/booking/sample";
 import { BookingPanel } from "./booking-panel";
 import pilot from "@/lib/booking/pilot.json";
-import { sessionLabel } from "@/lib/booking/rules";
+import { remainingHours, sessionLabel } from "@/lib/booking/rules";
 import { AccountControls } from "./account-controls";
 import { StatsReadout } from "./stats-readout";
 import { SpecimenTag } from "@/components/ui/specimen-tag";
@@ -54,7 +56,8 @@ export function Dashboard({
   review = false,
 }: Props) {
   const [rows, setRows] = useState(initial);
-  const [booking, setBooking] = useState<RequestRow | null>(null);
+  const [bookingId, setBookingId] = useState<string | null>(null);
+  const booking = rows.find((row) => row.id === bookingId);
   const [message, setMessage] = useState("");
   const [stampKey, setStampKey] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -119,8 +122,15 @@ export function Dashboard({
         row,
         ...items.filter((x) => x.id !== row.id),
       ];
-      const next = sample ? await updateSamples(append) : append(rows);
-      setRows(next);
+      if (sample) {
+        setRows(
+          await updateSamples((items) =>
+            items.some((item) => item.id === row.id) ? items : append(items),
+          ),
+        );
+      } else {
+        setRows(append);
+      }
       setStatus("all");
       formDialog.current?.close();
       form.reset();
@@ -135,15 +145,35 @@ export function Dashboard({
       setBusy(false);
     }
   }
-  async function decide(id: string, outcome: "approved" | "rejected") {
+  async function decide(id: string, outcome: ReviewDecision) {
     setBusy(true);
     try {
-      if (!sample) await reviewRequest(id, outcome);
-      const update = (items: RequestRow[]) =>
-        items.map((row) => (row.id === id ? { ...row, status: outcome } : row));
-      const next = sample ? await updateSamples(update) : update(rows);
-      setRows(next);
-      triggerStamp("Request " + outcome + ".");
+      let decision: ReviewDecision;
+      if (sample) {
+        const next = await updateSamples((items) =>
+          items.map((row) =>
+            row.id === id
+              ? { ...row, status: resolveReview(row.status, outcome) }
+              : row,
+          ),
+        );
+        const saved = next.find((row) => row.id === id);
+        if (!saved) throw new Error("Unknown request.");
+        decision = resolveReview(saved.status, outcome);
+        setRows(next);
+      } else {
+        decision = await reviewRequest(id, outcome);
+        setRows((items) =>
+          items.map((row) =>
+            row.id === id ? { ...row, status: decision } : row,
+          ),
+        );
+      }
+      triggerStamp(
+        decision === outcome
+          ? "Request " + decision + "."
+          : "Request already " + decision + ".",
+      );
     } catch {
       setMessage(
         "Could not update the request. Refresh the queue and try again.",
@@ -314,13 +344,11 @@ export function Dashboard({
                                 ))}
                               </ul>
                             ) : null}
-                            {(row.bookings ?? []).reduce(
-                              (sum, r) => sum + r.blocks / 2,
-                              0,
-                            ) < row.hoursNeeded && (
+                            {remainingHours(row.hoursNeeded, row.bookings) >
+                              0 && (
                               <button
                                 className="button button-outline"
-                                onClick={() => setBooking(row)}
+                                onClick={() => setBookingId(row.id)}
                               >
                                 Book lab time
                               </button>
@@ -438,13 +466,13 @@ export function Dashboard({
         <BookingPanel
           request={booking}
           sample={sample}
-          onClose={() => setBooking(null)}
+          onClose={() => setBookingId(null)}
           onBooked={(bookings) => {
             setRows((items) =>
               items.map((r) => (r.id === booking.id ? { ...r, bookings } : r)),
             );
             triggerStamp("Lab session reserved.");
-            setBooking(null);
+            setBookingId(null);
           }}
         />
       )}

@@ -84,6 +84,16 @@ test("three direct logins keep sample activity in the same browser", async ({
   await expect(rowToggle).toHaveAttribute("aria-expanded", "false");
   await page.getByRole("button", { name: "Book lab time" }).click();
   const reservation = page.getByRole("dialog", { name: "Reserve lab time" });
+  const otherTab = await context.newPage();
+  await otherTab.goto("/workspace");
+  await otherTab.getByRole("button", { name: "Book lab time" }).click();
+  const otherPicker = otherTab.getByRole("dialog", {
+    name: "Reserve lab time",
+  });
+  await otherPicker.getByLabel("Session length").selectOption("2");
+  await otherPicker
+    .getByLabel("Start time (India Standard Time)")
+    .selectOption({ index: 1 });
   await expect(
     reservation.getByRole("button", { name: "Confirm reservation" }),
   ).toBeDisabled();
@@ -94,6 +104,16 @@ test("three direct logins keep sample activity in the same browser", async ({
     .getByRole("button", { name: "Confirm reservation" })
     .click();
   await expect(page.getByRole("status")).toContainText("Lab session reserved");
+  await expect(otherPicker).toContainText("0.5 approved hours remaining");
+  await expect(otherPicker.getByLabel("Session length")).toHaveValue("0");
+  await expect(
+    otherPicker.getByRole("button", { name: "Confirm reservation" }),
+  ).toBeDisabled();
+  await otherPicker.getByLabel("Session length").selectOption("1");
+  await expect(
+    otherPicker.getByLabel("Start time (India Standard Time)"),
+  ).toBeVisible();
+  await otherTab.close();
   await page.reload();
   await expect(page.getByLabel("Reserved lab sessions")).toContainText(
     "scope-01",

@@ -11,6 +11,7 @@ import {
   availableStarts,
   coveredSlots,
   nextSession,
+  remainingHours,
   reservationIssue,
   sameSession,
   sessionLabel,
@@ -148,11 +149,10 @@ export function BookingPanel({
   }, []);
   const s = board?.schedule;
   const selectedUnit = unit || s?.units[0] || "";
-  const remaining =
-    request.hoursNeeded -
-    (request.bookings ?? []).reduce((sum, r) => sum + r.blocks / 2, 0);
+  const remaining = remainingHours(request.hoursNeeded, request.bookings);
+  const lengthFits = blocks <= remaining * 2;
   const starts =
-    s && board
+    s && board && lengthFits
       ? availableStarts(s, selectedUnit, blocks, board.occupied, board.now)
       : [];
   const days = [...new Set(starts.map(slotDay))];
@@ -248,7 +248,7 @@ export function BookingPanel({
           </button>
         )}
         {!board && !error && <p>Loading lab hours…</p>}
-        {s && (
+        {s && remaining >= 0.5 && (
           <fieldset disabled={busy}>
             <label>
               Instrument unit
@@ -264,9 +264,14 @@ export function BookingPanel({
             <label>
               Session length
               <select
-                value={blocks}
+                value={lengthFits ? blocks : 0}
                 onChange={(e) => setBlocks(Number(e.target.value))}
               >
+                {!lengthFits && (
+                  <option disabled value={0}>
+                    Choose a shorter session
+                  </option>
+                )}
                 {[1, 2, 3, 4]
                   .filter((n) => n <= remaining * 2)
                   .map((n) => (
@@ -315,9 +320,9 @@ export function BookingPanel({
                   </p>
                 )}
               </>
-            ) : (
+            ) : lengthFits ? (
               <p>No sessions of this length are free in the next 14 days.</p>
-            )}
+            ) : null}
           </fieldset>
         )}
         {message && <p role="alert">{message}</p>}

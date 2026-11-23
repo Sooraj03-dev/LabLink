@@ -117,10 +117,18 @@ try {
     ).status(),
     403,
   );
-  const faculty = await browser.newPage();
+  const facultyContext = await browser.newContext();
+  const faculty = await facultyContext.newPage();
   let twoHourStart;
   await faculty.goto(origin + "/login");
   await faculty.getByRole("button", { name: "Faculty", exact: true }).click();
+  await expect(faculty).toHaveURL(/\/approvals$/);
+  const staleQueue = await facultyContext.newPage();
+  await staleQueue.goto(origin + "/approvals");
+  const staleRow = staleQueue
+    .getByRole("listitem")
+    .filter({ hasText: a.title });
+  await expect(staleRow).toBeVisible();
   for (const person of [a, b]) {
     await faculty
       .getByRole("listitem")
@@ -133,6 +141,18 @@ try {
     await person.page.goto(origin + "/workspace");
     await person.page.getByRole("button", { name: "Book lab time" }).click();
     if (person === a) {
+      const ref = db.doc("accessRequests/" + a.requestId);
+      const before = await ref.get();
+      await staleRow
+        .getByRole("button", { name: "Reject", exact: true })
+        .click();
+      await expect(staleQueue.getByRole("status")).toContainText(
+        "already approved",
+      );
+      const after = await ref.get();
+      assert.equal(after.get("status"), "approved");
+      assert(before.updateTime.isEqual(after.updateTime));
+      await staleQueue.close();
       await person.page.getByLabel("Session length").selectOption("4");
       twoHourStart = Number(
         (

@@ -27,6 +27,9 @@ export const reservation = z.object({
   blocks: z.number().int().min(1).max(4),
 });
 export type Reservation = z.infer<typeof reservation>;
+export function remainingHours(approved: number, bookings: Reservation[] = []) {
+  return approved - bookings.reduce((sum, r) => sum + r.blocks / 2, 0);
+}
 export const bookingInput = reservation.extend({
   requestId: z
     .string()
@@ -112,10 +115,7 @@ export function reservationIssue(
 ) {
   if (!fitsSchedule(s, choice, now))
     return "Choose a future session within the published lab hours.";
-  if (
-    existing.reduce((sum, r) => sum + r.blocks, 0) + choice.blocks >
-    hours * 2
-  )
+  if (choice.blocks / 2 > remainingHours(hours, existing))
     return "This session exceeds the approved hours remaining.";
   return null;
 }

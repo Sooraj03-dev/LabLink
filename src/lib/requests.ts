@@ -19,6 +19,13 @@ export const requestRow = z.object({
   status: z.enum(["draft", "submitted", "approved", "rejected"]),
 });
 export type RequestRow = z.infer<typeof requestRow>;
+export const reviewDecision = z.enum(["approved", "rejected"]);
+export type ReviewDecision = z.infer<typeof reviewDecision>;
+
+export function resolveReview(current: unknown, decision: ReviewDecision) {
+  if (current === "submitted") return decision;
+  return reviewDecision.parse(current);
+}
 export const sampleRequests: RequestRow[] = [
   {
     id: "scope-crunch",

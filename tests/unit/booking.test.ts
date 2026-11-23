@@ -6,6 +6,7 @@ import {
   coveredSlots,
   fitsSchedule,
   horizon,
+  remainingHours,
   nextSession,
   reservationIssue,
   slotMs,
@@ -15,6 +16,17 @@ const hour = (s: string) => Date.parse(s + "+05:30");
 const now = hour("2026-11-23T08:00");
 const one = { unit: "scope-01", start: hour("2026-11-23T09:00"), blocks: 2 };
 describe("pilot reservation rules", () => {
+  it("keeps the picker and reservation limit on the same half-hour budget", () => {
+    expect(remainingHours(2)).toBe(2);
+    const existing = [{ ...one, blocks: 3 }];
+    expect(remainingHours(2, existing)).toBe(0.5);
+    expect(
+      reservationIssue(pilot, { ...one, blocks: 1 }, existing, 2, now),
+    ).toBeNull();
+    expect(reservationIssue(pilot, one, existing, 2, now)).toMatch(
+      /approved hours/,
+    );
+  });
   it("uses campus time for opening, closing, weekends and the 14-day window", () => {
     expect(fitsSchedule(pilot, one, now)).toBe(true);
     for (const time of [

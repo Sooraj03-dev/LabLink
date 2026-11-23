@@ -6,6 +6,9 @@ import {
   requestInput,
   requestRow,
   requestedResourceId,
+  resolveReview,
+  reviewDecision,
+  type ReviewDecision,
   type RequestRow,
 } from "@/lib/requests";
 import { sampleResources } from "@/lib/catalogue";
@@ -49,31 +52,31 @@ export async function saveRequest(
   });
 }
 
-export async function reviewRequest(
-  id: string,
-  outcome: "approved" | "rejected",
-) {
+export async function reviewRequest(id: string, outcome: ReviewDecision) {
   const user = await currentUser();
   if (!user || user.role === "student")
     throw new Error("Reviewer access required.");
   if (!id || id.includes("/") || id.length > 300)
     throw new Error("Unknown request.");
-  const status = z.enum(["approved", "rejected"]).parse(outcome);
+  const decision = reviewDecision.parse(outcome);
   const db = database(),
     ref = db.collection("accessRequests").doc(id);
-  await db.runTransaction(async (tx) => {
+  return db.runTransaction(async (tx) => {
     const row = await tx.get(ref);
     const reviewers = z
       .array(z.string())
       .catch([])
       .parse(row.get("reviewerIds"));
-    if (!reviewers.includes(user.uid) || row.get("status") !== "submitted")
-      throw new Error("Request unavailable.");
+    if (!reviewers.includes(user.uid)) throw new Error("Request unavailable.");
+    const current = row.get("status");
+    const status = resolveReview(current, decision);
+    if (current === status) return status;
     tx.update(ref, {
       status,
       reviewedBy: user.uid,
       reviewedAt: FieldValue.serverTimestamp(),
     });
+    return status;
   });
 }
 export async function submitDraft(id: string): Promise<boolean> {
